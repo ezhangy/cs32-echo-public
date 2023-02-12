@@ -8,6 +8,8 @@ window.onload = () => {
   // should be HTMLButtonElement. The handler function for a "click" takes no arguments.
 };
 
+let commandInput: HTMLInputElement;
+
 function prepareKeypress() {
   // As far as TypeScript knows, there may be *many* elements with this class.
   const maybeInputs: HTMLCollectionOf<Element> =
@@ -24,7 +26,8 @@ function prepareKeypress() {
     // Notice that we're passing *THE FUNCTION* as a value, not calling it.
     // The browser will invoke the function when a key is pressed with the input in focus.
     //  (This should remind you of the strategy pattern things we've done in Java.)
-    maybeInput.addEventListener("keypress", handleKeypress);
+    commandInput = maybeInput;
+    commandInput.addEventListener("keypress", handleKeypress);
   }
 }
 
@@ -70,13 +73,14 @@ function handleMouseClick() {
   // The event has more fields than just the key pressed (e.g., Alt, Ctrl, etc.)
   clickCount = clickCount + 1;
   console.log(`${getMouseClickCount()} clicks seen so far.`);
-  addLog("test")
+  console.log(commandInput.value)
+  addLog(commandInput.value);
 }
 
 function addLog(log: string) {
     console.log("called addLog method")
     const newLogElt = document.createElement("p");
-    const newContent = document.createTextNode("test");
+    const newContent = document.createTextNode(log);
     
     newLogElt.appendChild(newContent);
 
