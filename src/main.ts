@@ -36,13 +36,14 @@ function prepareMouseClick() {
   //  (Remember that the HTML author is free to assign the repl-input class to anything :-) )
   if (maybeInput == null) {
     console.log("Couldn't find input element");
-  } else if (!(maybeInput instanceof HTMLInputElement)) {
+  } else if (!(maybeInput instanceof HTMLButtonElement)) {
     console.log(`Found element ${maybeInput}, but it wasn't an input`);
   } else {
     // Notice that we're passing *THE FUNCTION* as a value, not calling it.
     // The browser will invoke the function when a key is pressed with the input in focus.
     //  (This should remind you of the strategy pattern things we've done in Java.)
     maybeInput.addEventListener("click", handleMouseClick);
+    console.log("Found element");
   }
 }
 
