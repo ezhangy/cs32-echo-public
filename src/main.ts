@@ -70,6 +70,20 @@ function handleMouseClick() {
   // The event has more fields than just the key pressed (e.g., Alt, Ctrl, etc.)
   clickCount = clickCount + 1;
   console.log(`${getMouseClickCount()} clicks seen so far.`);
+  addLog("test")
+}
+
+function addLog(log: string) {
+    console.log("called addLog method")
+    const newLogElt = document.createElement("p");
+    const newContent = document.createTextNode("test");
+    
+    newLogElt.appendChild(newContent);
+
+    const historyDiv = document.getElementsByClassName("repl-history").item(0);
+    console.log(`Found element ${historyDiv}`)
+    // TODO: narrow type of historyDiv
+    historyDiv?.append(newLogElt);
 }
 
 // Provide this to other modules (e.g., for testing!)
