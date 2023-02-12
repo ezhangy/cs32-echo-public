@@ -5,29 +5,24 @@
 */
 
 .repl {
-  position: relative;
-  min-height: 95vh;
-  background-position: center;
+    position:relative;
+    min-height:95vh;    
 }
 
-.repl-history {
-  height: 85vh;
-  margin: auto;
-  display: block;
-  overflow: scroll;
+.repl-history {      
+    height:85vh;   
+    margin: auto;
+    display: block;
+    overflow: scroll;    
 }
 
-.repl-input {
-  margin: auto;
-  height: 10vh;
+.repl-input {        
+    margin: auto;    
+    height:10vh;
 }
 .repl-command-box {
-  width: 90%;
-  margin: auto;
-  display: block;
+    width: 90%;            
+    margin: auto;
+    display: block;
 }
 
-.repl-button {
-  margin: auto;
-  display: block;
-}
