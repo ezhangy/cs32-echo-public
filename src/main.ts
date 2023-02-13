@@ -31,6 +31,7 @@ function prepareKeypress() {
   }
 }
 
+
 function prepareMouseClick() {
   const maybeInputs: HTMLCollectionOf<Element> =
     document.getElementsByClassName("repl-button");
@@ -74,20 +75,31 @@ function handleMouseClick() {
   clickCount = clickCount + 1;
   console.log(`${getMouseClickCount()} clicks seen so far.`);
   console.log(commandInput.value)
-  addLog(commandInput.value);
+  addToReplHistory(commandInput.value);
 }
 
-function addLog(log: string) {
-    console.log("called addLog method")
-    const newLogElt = document.createElement("p");
-    const newContent = document.createTextNode(log);
-    
-    newLogElt.appendChild(newContent);
+function isDivPresent(maybeDiv: Element | null, className: string): boolean {
+  if (maybeDiv == null) {
+    console.log(`Couldn't find div with class ${className}`);
+    return false;
+  } else if (!(maybeDiv instanceof HTMLDivElement)) {
+    console.log(`Found element ${maybeDiv}, but it wasn't a div`);
+    return false;
+  }
+  return true;
+}
 
-    const historyDiv = document.getElementsByClassName("repl-history").item(0);
-    console.log(`Found element ${historyDiv}`)
-    // TODO: narrow type of historyDiv
-    historyDiv?.append(newLogElt);
+function addToReplHistory(text: string) {
+    const newLogElt = document.createElement("p");
+    const newContent = document.createTextNode(text);
+    newLogElt.appendChild(newContent);
+    const maybeDivs: HTMLCollectionOf<Element> = 
+                                document.getElementsByClassName("repl-history");
+    const maybeDiv: Element | null = maybeDivs.item(0);
+    if (isDivPresent(maybeDiv, "repl-history")) {
+      maybeDiv?.append(newLogElt);
+    }  
+    commandInput.value = "";
 }
 
 // Provide this to other modules (e.g., for testing!)
