@@ -14,8 +14,45 @@ interface CommandLog {
   inVerboseMode: boolean;
 }
 
+interface ErrorLog {
+  errMessage: string;
+}
+
+type CommandFunction = (args: Array<String>) => HTMLBodyElement;
+
+function stringToParagraphElt(str: string): HTMLParagraphElement {
+  const paragraphElement: HTMLParagraphElement = 
+}
+
+
+
+const modeCommand: CommandFunction = (args: Array<String>): HTMLBodyElement => {
+  return `mode command executed with args: ${args}`;
+}
+
+
+const loadCommand: CommandFunction = (args: Array<String>): HTMLBodyElement => {
+  return `loadcommand executed with args: ${args}`;
+}
+
+const viewCommand: CommandFunction = (args: Array<String>): HTMLBodyElement => {
+  return `loadcommand executed with args: ${args}`;
+}
+
+
+const searchCommand: CommandFunction = (args: Array<String>): HTMLBodyElement => {
+  return `loadcommand executed with args: ${args}`;
+}
+
+
 let commandInput: HTMLInputElement;
-let history: Array<CommandLog>;
+let history: Array<CommandLog|ErrorLog>;
+let isModeVerbose: boolean;
+const commandMap: {[commandName: string]: CommandFunction} = { 
+  "mode": modeCommand,
+  "load_file": loadCommand,
+
+}
 
 function prepareKeypress() {
   // As far as TypeScript knows, there may be *many* elements with this class.
@@ -110,12 +147,19 @@ function addToReplHistory(text: string) {
 }
 
 function updateCommandHistoryState() {
-  
+  const args: Array<string> = commandInput.value.split("\s+")
+  console.log(`args: ${args}`)
+  if (args.length === 0) {
+    history.push({
+      errMessage: "submitted empty string"
+    })
+  }
+  //  else if ()
 }
 
 function updateHistoryAndRender() {
   updateCommandHistoryState();
-  renderCommandHisotyr();
+  // renderCommandHistory();
 }
 
 // Provide this to other modules (e.g., for testing!)
