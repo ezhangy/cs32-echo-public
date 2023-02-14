@@ -8,7 +8,14 @@ window.onload = () => {
   // should be HTMLButtonElement. The handler function for a "click" takes no arguments.
 };
 
+interface CommandLog {
+  command: string;
+  output: string;
+  inVerboseMode: boolean;
+}
+
 let commandInput: HTMLInputElement;
+let history: Array<CommandLog>;
 
 function prepareKeypress() {
   // As far as TypeScript knows, there may be *many* elements with this class.
@@ -100,6 +107,15 @@ function addToReplHistory(text: string) {
       maybeDiv?.append(newLogElt);
     }  
     commandInput.value = "";
+}
+
+function updateCommandHistoryState() {
+  
+}
+
+function updateHistoryAndRender() {
+  updateCommandHistoryState();
+  renderCommandHisotyr();
 }
 
 // Provide this to other modules (e.g., for testing!)
