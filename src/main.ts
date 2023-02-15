@@ -8,9 +8,34 @@ window.onload = () => {
   // should be HTMLButtonElement. The handler function for a "click" takes no arguments.
 };
 
+interface OutputObject {
+  toHTML(): void;
+}
+
+class StringOutput implements OutputObject {
+  output: string;
+  constructor(output: string) {
+    this.output = output;
+  }
+  toHTML() {
+    return stringToParagraphElt(this.output);
+  }
+}
+
+class TableOutput implements OutputObject {
+  output: string;
+  constructor(output: string) {
+    this.output = output;
+  }
+  toHTML() {
+    //TODO: return table elt
+    return stringToParagraphElt(this.output);
+  }
+}
+
 interface CommandLog {
   command: string;
-  output: string;
+  output: OutputObject;
   inVerboseMode: boolean;
 }
 
@@ -18,41 +43,43 @@ interface ErrorLog {
   errMessage: string;
 }
 
-type CommandFunction = (args: Array<String>) => HTMLBodyElement;
+type CommandFunction = (args: Array<String>) => OutputObject;
 
 function stringToParagraphElt(str: string): HTMLParagraphElement {
-  const paragraphElement: HTMLParagraphElement = 
+  const paragraphElement: HTMLParagraphElement = document.createElement("p");
+  const newContent: Text = document.createTextNode(str);
+  paragraphElement.appendChild(newContent);
+  return paragraphElement;
 }
 
+const modeCommand: CommandFunction = (args: Array<String>): OutputObject => {
+  //TODO: think about checking args passed into the command
+  let output = `mode changed to ${isModeVerbose ? "verbose" : "brief"}`;
+  isModeVerbose = !isModeVerbose;
+  return new StringOutput(
+    `mode changed to ${isModeVerbose ? "verbose" : "brief"}`
+  );
+};
 
+const loadCommand: CommandFunction = (args: Array<String>): OutputObject => {
+  return new StringOutput(`loadcommand executed with args: ${args}`);
+};
 
-const modeCommand: CommandFunction = (args: Array<String>): HTMLBodyElement => {
-  return `mode command executed with args: ${args}`;
-}
+const viewCommand: CommandFunction = (args: Array<String>): OutputObject => {
+  return new StringOutput(`loadcommand executed with args: ${args}`);
+};
 
-
-const loadCommand: CommandFunction = (args: Array<String>): HTMLBodyElement => {
-  return `loadcommand executed with args: ${args}`;
-}
-
-const viewCommand: CommandFunction = (args: Array<String>): HTMLBodyElement => {
-  return `loadcommand executed with args: ${args}`;
-}
-
-
-const searchCommand: CommandFunction = (args: Array<String>): HTMLBodyElement => {
-  return `loadcommand executed with args: ${args}`;
-}
-
+const searchCommand: CommandFunction = (args: Array<String>): OutputObject => {
+  return new StringOutput(`loadcommand executed with args: ${args}`);
+};
 
 let commandInput: HTMLInputElement;
-let history: Array<CommandLog|ErrorLog>;
-let isModeVerbose: boolean;
-const commandMap: {[commandName: string]: CommandFunction} = { 
-  "mode": modeCommand,
-  "load_file": loadCommand,
-
-}
+let history: Array<CommandLog | ErrorLog> = [];
+let isModeVerbose: boolean = false;
+const commandMap: { [commandName: string]: CommandFunction } = {
+  mode: modeCommand,
+  load_file: loadCommand,
+};
 
 function prepareKeypress() {
   // As far as TypeScript knows, there may be *many* elements with this class.
@@ -74,7 +101,6 @@ function prepareKeypress() {
     commandInput.addEventListener("keypress", handleKeypress);
   }
 }
-
 
 function prepareMouseClick() {
   const maybeInputs: HTMLCollectionOf<Element> =
@@ -118,8 +144,8 @@ function handleMouseClick() {
   // The event has more fields than just the key pressed (e.g., Alt, Ctrl, etc.)
   clickCount = clickCount + 1;
   console.log(`${getMouseClickCount()} clicks seen so far.`);
-  console.log(commandInput.value)
-  addToReplHistory(commandInput.value);
+  console.log(commandInput.value);
+  updateHistoryAndRender();
 }
 
 function isDivPresent(maybeDiv: Element | null, className: string): boolean {
@@ -134,32 +160,75 @@ function isDivPresent(maybeDiv: Element | null, className: string): boolean {
 }
 
 function addToReplHistory(text: string) {
-    const newLogElt = document.createElement("p");
-    const newContent = document.createTextNode(text);
-    newLogElt.appendChild(newContent);
-    const maybeDivs: HTMLCollectionOf<Element> = 
-                                document.getElementsByClassName("repl-history");
-    const maybeDiv: Element | null = maybeDivs.item(0);
-    if (isDivPresent(maybeDiv, "repl-history")) {
-      maybeDiv?.append(newLogElt);
-    }  
-    commandInput.value = "";
+  //TODO: declare variable types
+  const newLogElt = document.createElement("p");
+  const newContent = document.createTextNode(text);
+  newLogElt.appendChild(newContent);
+  const maybeDivs: HTMLCollectionOf<Element> =
+    document.getElementsByClassName("repl-history");
+  const maybeDiv: Element | null = maybeDivs.item(0);
+  if (isDivPresent(maybeDiv, "repl-history")) {
+    maybeDiv?.append(newLogElt);
+  }
+  commandInput.value = "";
 }
 
 function updateCommandHistoryState() {
-  const args: Array<string> = commandInput.value.split("\s+")
-  console.log(`args: ${args}`)
+  const args: Array<string> = commandInput.value.split(/\s+/).filter((n) => n);
+  console.log(`args: ${JSON.stringify(args)}`);
   if (args.length === 0) {
     history.push({
-      errMessage: "submitted empty string"
-    })
+      errMessage: "submitted empty string",
+    });
+  } else if (args[0] in commandMap) {
+    let oldIsModeVerbose = isModeVerbose;
+    const commandFunction: CommandFunction = commandMap[args[0]];
+    history.push({
+      command: args[0],
+      output: commandFunction(args),
+      inVerboseMode: oldIsModeVerbose,
+    });
+  } else {
+    history.push({
+      errMessage: "not success",
+    });
   }
-  //  else if ()
 }
 
 function updateHistoryAndRender() {
   updateCommandHistoryState();
-  // renderCommandHistory();
+  console.log(`history: ${JSON.stringify(history)}`);
+  renderCommandHistory();
+}
+
+function renderCommandHistory() {
+  const maybeDivs: HTMLCollectionOf<Element> =
+    document.getElementsByClassName("repl-history");
+  const maybeDiv: Element | null = maybeDivs.item(0);
+
+  if (maybeDiv == null) {
+    console.log(`Couldn't find div with class maybeDiv`);
+  } else if (!(maybeDiv instanceof HTMLDivElement)) {
+    console.log(`Found element ${maybeDiv}, but it wasn't a div`);
+  } else {
+    const replHistory: HTMLElement = maybeDiv;
+    replHistory.innerHTML = ``;
+
+    history.forEach((log) => {
+      if ((log as OutputObject).toHTML) {
+        replHistory.append(log.toHTML());
+      }
+    });
+  }
+}
+
+function clearHistory() {
+  history = [];
+}
+
+function getHistory() {
+  //defensive copy
+  return history.slice();
 }
 
 // Provide this to other modules (e.g., for testing!)
