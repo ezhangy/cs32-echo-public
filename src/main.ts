@@ -1,3 +1,5 @@
+import { mockJsonMap } from "./mockedJson";
+
 // The window.onload callback is invoked when the window is first loaded by the browser
 window.onload = () => {
   prepareKeypress();
@@ -18,7 +20,7 @@ abstract class HTMLableObject<T> {
 
   toHTMLTemplate(): HTMLTemplateElement {
     const template: HTMLTemplateElement = document.createElement("template");
-    template.innerHTML = this.makeInnerHTML()
+    template.innerHTML = this.makeInnerHTML();
     return template;
   }
 }
@@ -33,17 +35,17 @@ interface ErrLog {
   readonly errMessage: string;
 }
 
-class ErrHTMLLog extends HTMLableObject<ErrLog>  {
+class ErrHTMLLog extends HTMLableObject<ErrLog> {
   readonly className: string;
 
   constructor(errLog: ErrLog) {
-    super(errLog)
-    this.className = "err-log"
+    super(errLog);
+    this.className = "err-log";
   }
 
   protected makeInnerHTML(): string {
     const errLog: ErrLog = this.codeObj;
-    return `<p>${this.codeObj.errMessage}</p>`
+    return `<p>${this.codeObj.errMessage}</p>`;
   }
 }
 
@@ -58,17 +60,16 @@ class CommandHTMLLog<T> extends HTMLableObject<CommandLog<T>> {
   protected makeInnerHTML(): string {
     const command: string = this.codeObj.command;
     const output: T = this.codeObj.output;
-    const inVerboseMode: boolean = this.codeObj.inVerboseMode
+    const inVerboseMode: boolean = this.codeObj.inVerboseMode;
 
     return inVerboseMode
       ? `
           <p>Command: ${command}</p>
           <div class="command-output"><span>Output:</span>${output}</div>
       `
-    : `
+      : `
           <div class="command-output">${output}</div>
-      `
-    ;
+      `;
   }
 }
 
@@ -87,8 +88,7 @@ class CommandHTMLLog<T> extends HTMLableObject<CommandLog<T>> {
 
 type CommandFunction<T> = {
   (args: Array<string>): CommandHTMLLog<T>;
-}
-  
+};
 
 function stringToParagraphElt(str: string): HTMLParagraphElement {
   const paragraphElement: HTMLParagraphElement = document.createElement("p");
@@ -104,43 +104,61 @@ const modeCommand: CommandFunction<string> = (args) => {
   const log: CommandLog<string> = {
     command: "mode",
     output: output,
-    inVerboseMode: isModeVerbose
-  }
-  return new CommandHTMLLog<string>(log)
+    inVerboseMode: isModeVerbose,
+  };
+  return new CommandHTMLLog<string>(log);
 };
 
+let loadedCSV: Array<Array<string | number>> = [[]];
+
+function loadHelper(filePath: string): boolean {
+  if (filePath in mockJsonMap) {
+    loadedCSV = mockJsonMap[filePath];
+    return true;
+  } else {
+    return false;
+  }
+}
+
 const loadCommand: CommandFunction<string> = (args) => {
-  const log: CommandLog<string> = {
-    command: "load_file",
-    output: `load_file command executed with args: ${args}`,
-    inVerboseMode: isModeVerbose
+  let output;
+  if (args.length == 2) {
+    if (loadHelper(args[1])) {
+      output = `Successfully loaded ${args[1]}.`;
+    } else {
+      output = `Could not find ${args[1]}.`;
+    }
   }
 
-  return new CommandHTMLLog<string>(log)
+  return new CommandHTMLLog<string>({
+    command: "load_file",
+    output: `load_file command executed with args: ${args}`,
+    inVerboseMode: isModeVerbose,
+  });
 };
 
 const viewCommand: CommandFunction<string> = (args) => {
   const log: CommandLog<string> = {
     command: "view",
     output: `view command executed with args: ${args}`,
-    inVerboseMode: isModeVerbose
-  }
+    inVerboseMode: isModeVerbose,
+  };
 
-  return new CommandHTMLLog<string>(log)
+  return new CommandHTMLLog<string>(log);
 };
 
 const searchCommand: CommandFunction<string> = (args) => {
   const log: CommandLog<string> = {
     command: "search",
     output: `search command executed with args: ${args}`,
-    inVerboseMode: isModeVerbose
-  }
+    inVerboseMode: isModeVerbose,
+  };
 
-  return new CommandHTMLLog<string>(log)
+  return new CommandHTMLLog<string>(log);
 };
 
 let commandInput: HTMLInputElement;
-let history: Array<CommandHTMLLog<string>|ErrHTMLLog> = [];
+let history: Array<CommandHTMLLog<string> | ErrHTMLLog> = [];
 
 let isModeVerbose: boolean = false;
 const commandMap: { [commandName: string]: CommandFunction<any> } = {
@@ -228,12 +246,14 @@ function updateCommandHistoryState() {
   const args: Array<string> = commandInput.value.split(/\s+/).filter((n) => n);
   console.log(`args: ${JSON.stringify(args)}`);
   if (args.length === 0) {
-    history.push(new ErrHTMLLog({errMessage: "submitted empty string"}));
+    history.push(new ErrHTMLLog({ errMessage: "submitted empty string" }));
   } else if (args[0] in commandMap) {
     const commandFunction: CommandFunction<string> = commandMap[args[0]];
-    history.push(commandFunction(args))
+    history.push(commandFunction(args));
   } else {
-    history.push(new ErrHTMLLog({errMessage: `command ${args[0]} not found`}));
+    history.push(
+      new ErrHTMLLog({ errMessage: `command ${args[0]} not found` })
+    );
   }
 }
 
@@ -261,11 +281,10 @@ function renderCommandHistory() {
         <div ${log.className} />
           <span>></span> ${logTemplate.innerHTML}
         <div />
-      `
+      `;
       return logTemplate.content;
-    }
-    );
-    historyDiv.replaceChildren(...logDivs)
+    });
+    historyDiv.replaceChildren(...logDivs);
   }
 }
 
