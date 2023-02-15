@@ -33,12 +33,10 @@ interface ErrLog {
   readonly errMessage: string;
 }
 
-abstract class OutputCreator<T> {
-  constructor(){}
-
-  abstract verboseHTML(output: T): string;
-  abstract briefHTML(output: T): string;
-  abstract printType(): void;
+interface OutputCreator<T> {
+  verboseHTML(output: T): string;
+  briefHTML(output: T): string;
+  printType(): void;
 }
 
 class StringOutputCreator implements OutputCreator<string> {
@@ -72,7 +70,6 @@ class CommandHTMLLog<T> extends HTMLableObject<CommandLog<T>> {
   readonly className: string;
 
   constructor(commandLog: CommandLog<T>, outputCreator: OutputCreator<T>) {
-    console.log(`in commandHTMLlog constructor before super, output is ${outputCreator.verboseHTML(commandLog.output)}`)
     super(commandLog);
     this.outputCreator = outputCreator;
     this.className = "command-log";
@@ -82,12 +79,6 @@ class CommandHTMLLog<T> extends HTMLableObject<CommandLog<T>> {
     const command: string = this.codeObj.command;
     const output: T = this.codeObj.output;
     const inVerboseMode: boolean = this.codeObj.inVerboseMode
-
-    console.log(`in makeInnerHTML of commandHTMLLog, creator is OutputCreator
-    ${this.outputCreator instanceof OutputCreator<T>}`)
-
-    console.log(`in makeInnerHTML of commandHTMLLog, codeObj
-    ${this.codeObj }`)
 
     return inVerboseMode
       ? `
@@ -135,7 +126,6 @@ const modeCommand: CommandFunction<string> = (args) => {
     output: output,
     inVerboseMode: isModeVerbose
   }
-  console.log(`in modeCommand, outputCreator outputs: ${new StringOutputCreator().verboseHTML("test")}`)
   return new CommandHTMLLog<string>(log, new StringOutputCreator())
 };
 
