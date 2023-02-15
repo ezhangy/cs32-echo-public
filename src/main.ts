@@ -12,43 +12,54 @@ interface HTMLable {
   toHTML(): HTMLElement;
 }
 
+interface HTMLLog {
+  createLogDiv(): HTMLElement;
+}
+
 class StringOutput implements HTMLable {
   output: string;
 
   constructor(output: string) {
     this.output = output;
   }
+
   toHTML() {
     return stringToParagraphElt(this.output);
   }
 }
 
-class CommandLog implements HTMLable {
-  command: string;
+class CommandLog implements HTMLLog {
+  command: HTMLable;
   output: HTMLable;
   inVerboseMode: boolean;
 
-  constructor(command: string, output: HTMLable, inVerboseMode: boolean) {
+  constructor(command: HTMLable, output: HTMLable, inVerboseMode: boolean) {
     this.command = command;
     this.output = output, 
     this.inVerboseMode = inVerboseMode
   }
 
-  toHTML(): HTMLElement {
-    const div = document.createElement("div")
-    div.appendChild(this.output.toHTML())
-    return div;
+  createLogDiv(): HTMLElement {
+    const logDiv = document.createElement("div")
+    const logFragment = new DocumentFragment();
+    if (this.inVerboseMode) {
+      logFragment.append(this.command.toHTML())
+    } 
+    logFragment.append(this.output.toHTML())
+
+    logDiv.append(logFragment)
+    return logDiv;
   }
 }
 
-class ErrLog implements HTMLable {
+class ErrLog implements HTMLLog {
   errMessage: StringOutput;
 
   constructor(errMessage: StringOutput) {
     this.errMessage = errMessage;
   }
 
-  toHTML(): HTMLElement {
+  createLogDiv(): HTMLElement {
     const div = document.createElement("div")
     div.appendChild(this.errMessage.toHTML())
     return div;
@@ -99,6 +110,9 @@ const searchCommand: CommandFunction = (args: Array<String>): HTMLable => {
 
 let commandInput: HTMLInputElement;
 let history: Array<CommandLog | ErrLog> = [];
+
+
+
 let isModeVerbose: boolean = false;
 const commandMap: { [commandName: string]: CommandFunction } = {
   mode: modeCommand,
@@ -140,7 +154,7 @@ function prepareMouseClick() {
     // Notice that we're passing *THE FUNCTION* as a value, not calling it.
     // The browser will invoke the function when a key is pressed with the input in focus.
     //  (This should remind you of the strategy pattern things we've done in Java.)
-    maybeInput.addEventListener("click", handleMouseClick);
+    maybeInput.addEventListener("click", updateHistoryAndRender);
     console.log("Found element");
   }
 }
@@ -164,37 +178,23 @@ function handleKeypress(event: KeyboardEvent) {
   );
 }
 
-function handleMouseClick() {
-  // The event has more fields than just the key pressed (e.g., Alt, Ctrl, etc.)
-  clickCount = clickCount + 1;
-  console.log(`${getMouseClickCount()} clicks seen so far.`);
-  console.log(commandInput.value);
-  updateHistoryAndRender();
-}
+// function handleMouseClick() {
+//   // The event has more fields than just the key pressed (e.g., Alt, Ctrl, etc.)
+//   clickCount = clickCount + 1;
+//   console.log(`${getMouseClickCount()} clicks seen so far.`);
+//   console.log(commandInput.value);
+//   updateHistoryAndRender();
+// }
 
 function isDivPresent(maybeDiv: Element | null, className: string): boolean {
   if (maybeDiv == null) {
     console.log(`Couldn't find div with class ${className}`);
     return false;
   } else if (!(maybeDiv instanceof HTMLDivElement)) {
-    console.log(`Found element ${maybeDiv}, but it wasn't a div`);
+    console.log(`Found element ${maybeDiv},but it wasn't a div`);
     return false;
   }
   return true;
-}
-
-function addToReplHistory(text: string) {
-  //TODO: declare variable types
-  const newLogElt = document.createElement("p");
-  const newContent = document.createTextNode(text);
-  newLogElt.appendChild(newContent);
-  const maybeDivs: HTMLCollectionOf<Element> =
-    document.getElementsByClassName("repl-history");
-  const maybeDiv: Element | null = maybeDivs.item(0);
-  if (isDivPresent(maybeDiv, "repl-history")) {
-    maybeDiv?.append(newLogElt);
-  }
-  commandInput.value = "";
 }
 
 function updateCommandHistoryState() {
@@ -206,7 +206,7 @@ function updateCommandHistoryState() {
     let oldIsModeVerbose = isModeVerbose;
     const commandFunction: CommandFunction = commandMap[args[0]];
     history.push(
-      new CommandLog(args[0], commandFunction(args), oldIsModeVerbose));
+      new CommandLog(new StringOutput(args[0]), commandFunction(args), oldIsModeVerbose));
   } else {
     history.push(new ErrLog(new StringOutput("command not found")));
   }
@@ -214,26 +214,24 @@ function updateCommandHistoryState() {
 
 function updateHistoryAndRender() {
   updateCommandHistoryState();
+  commandInput.value = "";
   console.log(`history: ${JSON.stringify(history)}`);
   renderCommandHistory();
 }
 
 function renderCommandHistory() {
-  const maybeDivs: HTMLCollectionOf<Element> =
+  const maybeHistoryDivs: HTMLCollectionOf<Element> =
     document.getElementsByClassName("repl-history");
-  const maybeDiv: Element | null = maybeDivs.item(0);
+  const maybeHistoryDiv: Element | null = maybeHistoryDivs.item(0);
 
-  if (maybeDiv == null) {
-    console.log(`Couldn't find div with class maybeDiv`);
-  } else if (!(maybeDiv instanceof HTMLDivElement)) {
-    console.log(`Found element ${maybeDiv}, but it wasn't a div`);
+  if (maybeHistoryDiv == null) {
+    console.log(`Couldn't find div with class "repl-history"`);
+  } else if (!(maybeHistoryDiv instanceof HTMLDivElement)) {
+    console.log(`Found element ${maybeHistoryDiv}, but it wasn't a div`);
   } else {
-    const replHistory: HTMLElement = maybeDiv;
-    replHistory.innerHTML = ``;
-
-    history.forEach((log) => {
-        replHistory.append(log.toHTML());
-    });
+    const historyDiv: Element = maybeHistoryDiv;
+    const logDivs: Array<HTMLElement> = history.map((log) => log.createLogDiv())
+    historyDiv.replaceChildren(...logDivs)
   }
 }
 
