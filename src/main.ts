@@ -8,12 +8,13 @@ window.onload = () => {
   // should be HTMLButtonElement. The handler function for a "click" takes no arguments.
 };
 
-interface OutputObject {
-  toHTML(): void;
+interface HTMLable {
+  toHTML(): Element;
 }
 
-class StringOutput implements OutputObject {
+class StringOutput implements HTMLable {
   output: string;
+
   constructor(output: string) {
     this.output = output;
   }
@@ -22,7 +23,40 @@ class StringOutput implements OutputObject {
   }
 }
 
-class TableOutput implements OutputObject {
+class CommandLog implements HTMLable {
+  command: string;
+  output: HTMLable;
+  inVerboseMode: boolean;
+
+  constructor(command: string, output: HTMLable, inVerboseMode: boolean) {
+    this.command = command;
+    this.output = output, 
+    this.inVerboseMode = inVerboseMode
+  }
+
+  toHTML(): HTMLElement {
+    const div = document.createElement("div")
+    div.appendChild(this.output.toHTML())
+    return div;
+  }
+}
+
+class ErrLog implements HTMLable {
+  errMessage: StringOutput;
+
+  constructor(errMessage: StringOutput) {
+    this.errMessage = errMessage;
+  }
+
+  toHTML(): HTMLElement {
+    const div = document.createElement("div")
+    div.appendChild(this.errMessage.toHTML())
+    return div;
+  }
+}
+
+
+class TableOutput implements HTMLable {
   output: string;
   constructor(output: string) {
     this.output = output;
@@ -33,17 +67,7 @@ class TableOutput implements OutputObject {
   }
 }
 
-interface CommandLog {
-  command: string;
-  output: OutputObject;
-  inVerboseMode: boolean;
-}
-
-interface ErrorLog {
-  errMessage: string;
-}
-
-type CommandFunction = (args: Array<String>) => OutputObject;
+type CommandFunction = (args: Array<String>) => HTMLable;
 
 function stringToParagraphElt(str: string): HTMLParagraphElement {
   const paragraphElement: HTMLParagraphElement = document.createElement("p");
@@ -52,7 +76,7 @@ function stringToParagraphElt(str: string): HTMLParagraphElement {
   return paragraphElement;
 }
 
-const modeCommand: CommandFunction = (args: Array<String>): OutputObject => {
+const modeCommand: CommandFunction = (args: Array<String>): HTMLable => {
   //TODO: think about checking args passed into the command
   let output = `mode changed to ${isModeVerbose ? "verbose" : "brief"}`;
   isModeVerbose = !isModeVerbose;
@@ -61,20 +85,20 @@ const modeCommand: CommandFunction = (args: Array<String>): OutputObject => {
   );
 };
 
-const loadCommand: CommandFunction = (args: Array<String>): OutputObject => {
+const loadCommand: CommandFunction = (args: Array<String>): HTMLable => {
   return new StringOutput(`loadcommand executed with args: ${args}`);
 };
 
-const viewCommand: CommandFunction = (args: Array<String>): OutputObject => {
+const viewCommand: CommandFunction = (args: Array<String>): HTMLable => {
   return new StringOutput(`loadcommand executed with args: ${args}`);
 };
 
-const searchCommand: CommandFunction = (args: Array<String>): OutputObject => {
+const searchCommand: CommandFunction = (args: Array<String>): HTMLable => {
   return new StringOutput(`loadcommand executed with args: ${args}`);
 };
 
 let commandInput: HTMLInputElement;
-let history: Array<CommandLog | ErrorLog> = [];
+let history: Array<CommandLog | ErrLog> = [];
 let isModeVerbose: boolean = false;
 const commandMap: { [commandName: string]: CommandFunction } = {
   mode: modeCommand,
@@ -177,21 +201,14 @@ function updateCommandHistoryState() {
   const args: Array<string> = commandInput.value.split(/\s+/).filter((n) => n);
   console.log(`args: ${JSON.stringify(args)}`);
   if (args.length === 0) {
-    history.push({
-      errMessage: "submitted empty string",
-    });
+    history.push(new ErrLog(new StringOutput("submitted empty string")));
   } else if (args[0] in commandMap) {
     let oldIsModeVerbose = isModeVerbose;
     const commandFunction: CommandFunction = commandMap[args[0]];
-    history.push({
-      command: args[0],
-      output: commandFunction(args),
-      inVerboseMode: oldIsModeVerbose,
-    });
+    history.push(
+      new CommandLog(args[0], commandFunction(args), oldIsModeVerbose));
   } else {
-    history.push({
-      errMessage: "not success",
-    });
+    history.push(new ErrLog(new StringOutput("command not found")));
   }
 }
 
@@ -215,9 +232,7 @@ function renderCommandHistory() {
     replHistory.innerHTML = ``;
 
     history.forEach((log) => {
-      if ((log as OutputObject).toHTML) {
         replHistory.append(log.toHTML());
-      }
     });
   }
 }
