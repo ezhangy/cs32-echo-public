@@ -9,7 +9,7 @@ window.onload = () => {
 };
 
 interface HTMLable {
-  toHTML(): Element;
+  toHTML(): HTMLElement;
 }
 
 class StringOutput implements HTMLable {
