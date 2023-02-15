@@ -8,77 +8,116 @@ window.onload = () => {
   // should be HTMLButtonElement. The handler function for a "click" takes no arguments.
 };
 
-interface HTMLable {
-  toHTML(): HTMLElement;
-}
+abstract class HTMLableObject<T> {
+  protected abstract makeInnerHTML(): string;
+  readonly codeObj: T;
 
-interface HTMLLog {
-  createLogDiv(): HTMLElement;
-}
-
-class StringOutput implements HTMLable {
-  output: string;
-
-  constructor(output: string) {
-    this.output = output;
+  constructor(codeObj: T) {
+    this.codeObj = codeObj;
   }
 
-  toHTML() {
-    return stringToParagraphElt(this.output);
+  toHTMLTemplate(): HTMLTemplateElement {
+    const template: HTMLTemplateElement = document.createElement("template");
+    template.innerHTML = this.makeInnerHTML()
+    return template;
   }
 }
 
-class CommandLog implements HTMLLog {
-  command: HTMLable;
-  output: HTMLable;
+interface CommandLog<T> {
+  readonly command: string;
+  readonly output: T;
   inVerboseMode: boolean;
+}
 
-  constructor(command: HTMLable, output: HTMLable, inVerboseMode: boolean) {
-    this.command = command;
-    this.output = output, 
-    this.inVerboseMode = inVerboseMode
+interface ErrLog {
+  readonly errMessage: string;
+}
+
+abstract class OutputCreator<T> {
+  constructor(){}
+
+  abstract verboseHTML(output: T): string;
+  abstract briefHTML(output: T): string;
+  abstract printType(): void;
+}
+
+class StringOutputCreator implements OutputCreator<string> {
+  verboseHTML(output: string): string {
+    return `<p> Output: ${output} </p>`
   }
-
-  createLogDiv(): HTMLElement {
-    const logDiv = document.createElement("div")
-    const logFragment = new DocumentFragment();
-    if (this.inVerboseMode) {
-      logFragment.append(this.command.toHTML())
-    } 
-    logFragment.append(this.output.toHTML())
-
-    logDiv.append(logFragment)
-    return logDiv;
+  briefHTML(output: string): string {
+    return `<p><span>> </span> ${output} </p>`
+  }
+  printType(): void {
+    console.log("i'm a StringOutputCreator")
   }
 }
 
-class ErrLog implements HTMLLog {
-  errMessage: StringOutput;
+class ErrHTMLLog extends HTMLableObject<ErrLog>  {
+  readonly className: string;
 
-  constructor(errMessage: StringOutput) {
-    this.errMessage = errMessage;
+  constructor(errLog: ErrLog) {
+    super(errLog)
+    this.className = "err-log"
   }
 
-  createLogDiv(): HTMLElement {
-    const div = document.createElement("div")
-    div.appendChild(this.errMessage.toHTML())
-    return div;
-  }
-}
-
-
-class TableOutput implements HTMLable {
-  output: string;
-  constructor(output: string) {
-    this.output = output;
-  }
-  toHTML() {
-    //TODO: return table elt
-    return stringToParagraphElt(this.output);
+  protected makeInnerHTML(): string {
+    const errLog: ErrLog = this.codeObj;
+    return `<p>${this.codeObj.errMessage}</p>`
   }
 }
 
-type CommandFunction = (args: Array<String>) => HTMLable;
+class CommandHTMLLog<T> extends HTMLableObject<CommandLog<T>> {
+  private readonly outputCreator: OutputCreator<T>;
+  readonly className: string;
+
+  constructor(commandLog: CommandLog<T>, outputCreator: OutputCreator<T>) {
+    console.log(`in commandHTMLlog constructor before super, output is ${outputCreator.verboseHTML(commandLog.output)}`)
+    super(commandLog);
+    this.outputCreator = outputCreator;
+    this.className = "command-log";
+  }
+
+  protected makeInnerHTML(): string {
+    const command: string = this.codeObj.command;
+    const output: T = this.codeObj.output;
+    const inVerboseMode: boolean = this.codeObj.inVerboseMode
+
+    console.log(`in makeInnerHTML of commandHTMLLog, creator is OutputCreator
+    ${this.outputCreator instanceof OutputCreator<T>}`)
+
+    console.log(`in makeInnerHTML of commandHTMLLog, codeObj
+    ${this.codeObj }`)
+
+    return inVerboseMode
+      ? `
+          <p>Command: ${command}</p>
+          ${this.outputCreator.verboseHTML(output)}
+      `
+    : `
+          ${this.outputCreator.briefHTML(output)}
+      `
+    ;
+  }
+}
+
+// class TableOutput implements HTMLable {
+//   output: string;
+//   constructor(output: string) {
+//     this.output = output;
+//   }
+//   toHTMLTemplate(): HTMLTemplateElement {
+//     //TODO: return table elt
+//     const template: HTMLTemplateElement = document.createElement("template")
+//     template.innerHTML = this.output;
+//     return template;
+//   }
+// }
+
+type CommandFunction<T> = {
+  (args: Array<string>): CommandHTMLLog<T>;
+}
+  
 
 function stringToParagraphElt(str: string): HTMLParagraphElement {
   const paragraphElement: HTMLParagraphElement = document.createElement("p");
@@ -87,34 +126,54 @@ function stringToParagraphElt(str: string): HTMLParagraphElement {
   return paragraphElement;
 }
 
-const modeCommand: CommandFunction = (args: Array<String>): HTMLable => {
+const modeCommand: CommandFunction<string> = (args) => {
   //TODO: think about checking args passed into the command
-  let output = `mode changed to ${isModeVerbose ? "verbose" : "brief"}`;
   isModeVerbose = !isModeVerbose;
-  return new StringOutput(
-    `mode changed to ${isModeVerbose ? "verbose" : "brief"}`
-  );
+  let output = `mode changed to ${isModeVerbose ? "verbose" : "brief"}`;
+  const log: CommandLog<string> = {
+    command: "mode",
+    output: output,
+    inVerboseMode: isModeVerbose
+  }
+  console.log(`in modeCommand, outputCreator outputs: ${new StringOutputCreator().verboseHTML("test")}`)
+  return new CommandHTMLLog<string>(log, new StringOutputCreator())
 };
 
-const loadCommand: CommandFunction = (args: Array<String>): HTMLable => {
-  return new StringOutput(`loadcommand executed with args: ${args}`);
+const loadCommand: CommandFunction<string> = (args) => {
+  const log: CommandLog<string> = {
+    command: "load_file",
+    output: `load_file command executed with args: ${args}`,
+    inVerboseMode: isModeVerbose
+  }
+
+  return new CommandHTMLLog<string>(log, new StringOutputCreator())
 };
 
-const viewCommand: CommandFunction = (args: Array<String>): HTMLable => {
-  return new StringOutput(`loadcommand executed with args: ${args}`);
+const viewCommand: CommandFunction<string> = (args) => {
+  const log: CommandLog<string> = {
+    command: "view",
+    output: `view command executed with args: ${args}`,
+    inVerboseMode: isModeVerbose
+  }
+
+  return new CommandHTMLLog<string>(log, new StringOutputCreator())
 };
 
-const searchCommand: CommandFunction = (args: Array<String>): HTMLable => {
-  return new StringOutput(`loadcommand executed with args: ${args}`);
+const searchCommand: CommandFunction<string> = (args) => {
+  const log: CommandLog<string> = {
+    command: "search",
+    output: `search command executed with args: ${args}`,
+    inVerboseMode: isModeVerbose
+  }
+
+  return new CommandHTMLLog<string>(log, new StringOutputCreator())
 };
 
 let commandInput: HTMLInputElement;
-let history: Array<CommandLog | ErrLog> = [];
-
-
+let history: Array<CommandHTMLLog<string>|ErrHTMLLog> = [];
 
 let isModeVerbose: boolean = false;
-const commandMap: { [commandName: string]: CommandFunction } = {
+const commandMap: { [commandName: string]: CommandFunction<any> } = {
   mode: modeCommand,
   load_file: loadCommand,
 };
@@ -144,8 +203,6 @@ function prepareMouseClick() {
   const maybeInputs: HTMLCollectionOf<Element> =
     document.getElementsByClassName("repl-button");
   const maybeInput: Element | null = maybeInputs.item(0);
-  // Is the thing there? Is it of the expected type?
-  //  (Remember that the HTML author is free to assign the repl-input class to anything :-) )
   if (maybeInput == null) {
     console.log("Couldn't find input element");
   } else if (!(maybeInput instanceof HTMLButtonElement)) {
@@ -201,14 +258,12 @@ function updateCommandHistoryState() {
   const args: Array<string> = commandInput.value.split(/\s+/).filter((n) => n);
   console.log(`args: ${JSON.stringify(args)}`);
   if (args.length === 0) {
-    history.push(new ErrLog(new StringOutput("submitted empty string")));
+    history.push(new ErrHTMLLog({errMessage: "submitted empty string"}));
   } else if (args[0] in commandMap) {
-    let oldIsModeVerbose = isModeVerbose;
-    const commandFunction: CommandFunction = commandMap[args[0]];
-    history.push(
-      new CommandLog(new StringOutput(args[0]), commandFunction(args), oldIsModeVerbose));
+    const commandFunction: CommandFunction<string> = commandMap[args[0]];
+    history.push(commandFunction(args))
   } else {
-    history.push(new ErrLog(new StringOutput("command not found")));
+    history.push(new ErrHTMLLog({errMessage: `command ${args[0]} not found`}));
   }
 }
 
@@ -230,7 +285,16 @@ function renderCommandHistory() {
     console.log(`Found element ${maybeHistoryDiv}, but it wasn't a div`);
   } else {
     const historyDiv: Element = maybeHistoryDiv;
-    const logDivs: Array<HTMLElement> = history.map((log) => log.createLogDiv())
+    const logDivs: Array<DocumentFragment> = history.map((log) => {
+      const logTemplate: HTMLTemplateElement = log.toHTMLTemplate();
+      logTemplate.innerHTML = `
+        <div ${log.className} />
+          <span>></span> ${logTemplate.innerHTML}
+        <div />
+      `
+      return logTemplate.content;
+    }
+    );
     historyDiv.replaceChildren(...logDivs)
   }
 }
