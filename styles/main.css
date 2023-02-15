@@ -22,6 +22,8 @@ p {
 }
 
 .repl-history {
+  /* font family from 
+  https://qwtel.com/posts/software/the-monospaced-system-ui-css-font-stack/ */
   font-family: ui-monospace, 
              Menlo, Monaco, 
              "Cascadia Mono", "Segoe UI Mono", 
@@ -31,7 +33,7 @@ p {
              "Source Code Pro",
              "Fira Mono", 
              "Droid Sans Mono", 
-             "Courier New", monospace
+             "Courier New", monospace;
   height: 85vh;
   max-height: 85vh;
   margin: auto;
