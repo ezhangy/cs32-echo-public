@@ -33,24 +33,6 @@ interface ErrLog {
   readonly errMessage: string;
 }
 
-interface OutputCreator<T> {
-  verboseHTML(output: T): string;
-  briefHTML(output: T): string;
-  printType(): void;
-}
-
-class StringOutputCreator implements OutputCreator<string> {
-  verboseHTML(output: string): string {
-    return `<p> Output: ${output} </p>`
-  }
-  briefHTML(output: string): string {
-    return `<p><span>> </span> ${output} </p>`
-  }
-  printType(): void {
-    console.log("i'm a StringOutputCreator")
-  }
-}
-
 class ErrHTMLLog extends HTMLableObject<ErrLog>  {
   readonly className: string;
 
@@ -66,12 +48,10 @@ class ErrHTMLLog extends HTMLableObject<ErrLog>  {
 }
 
 class CommandHTMLLog<T> extends HTMLableObject<CommandLog<T>> {
-  private readonly outputCreator: OutputCreator<T>;
   readonly className: string;
 
-  constructor(commandLog: CommandLog<T>, outputCreator: OutputCreator<T>) {
+  constructor(commandLog: CommandLog<T>) {
     super(commandLog);
-    this.outputCreator = outputCreator;
     this.className = "command-log";
   }
 
@@ -83,10 +63,10 @@ class CommandHTMLLog<T> extends HTMLableObject<CommandLog<T>> {
     return inVerboseMode
       ? `
           <p>Command: ${command}</p>
-          ${this.outputCreator.verboseHTML(output)}
+          <div class="command-output"><span>Output:</span>${output}</div>
       `
     : `
-          ${this.outputCreator.briefHTML(output)}
+          <div class="command-output">${output}</div>
       `
     ;
   }
@@ -126,7 +106,7 @@ const modeCommand: CommandFunction<string> = (args) => {
     output: output,
     inVerboseMode: isModeVerbose
   }
-  return new CommandHTMLLog<string>(log, new StringOutputCreator())
+  return new CommandHTMLLog<string>(log)
 };
 
 const loadCommand: CommandFunction<string> = (args) => {
@@ -136,7 +116,7 @@ const loadCommand: CommandFunction<string> = (args) => {
     inVerboseMode: isModeVerbose
   }
 
-  return new CommandHTMLLog<string>(log, new StringOutputCreator())
+  return new CommandHTMLLog<string>(log)
 };
 
 const viewCommand: CommandFunction<string> = (args) => {
@@ -146,7 +126,7 @@ const viewCommand: CommandFunction<string> = (args) => {
     inVerboseMode: isModeVerbose
   }
 
-  return new CommandHTMLLog<string>(log, new StringOutputCreator())
+  return new CommandHTMLLog<string>(log)
 };
 
 const searchCommand: CommandFunction<string> = (args) => {
@@ -156,7 +136,7 @@ const searchCommand: CommandFunction<string> = (args) => {
     inVerboseMode: isModeVerbose
   }
 
-  return new CommandHTMLLog<string>(log, new StringOutputCreator())
+  return new CommandHTMLLog<string>(log)
 };
 
 let commandInput: HTMLInputElement;
