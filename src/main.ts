@@ -1,4 +1,4 @@
-import { mockJsonMap } from "./mockedJson.js";
+import { mockLoadMap } from "./mockedJson.js";
 
 // The window.onload callback is invoked when the window is first loaded by the browser
 window.onload = () => {
@@ -51,11 +51,37 @@ class ErrHTMLLog extends HTMLableObject<ErrLog> {
 
 class ParagraphHTML extends HTMLableObject<string> {
   constructor(strObj: string) {
-    super(strObj)
+    super(strObj);
   }
 
   protected makeInnerHTML(): string {
-    return `<p>${this.codeObj}</p>`
+    return `<p>${this.codeObj}</p>`;
+  }
+}
+
+class TableHTML extends HTMLableObject<CSV> {
+  constructor(arrObj: CSV) {
+    super(arrObj);
+  }
+
+  protected makeInnerHTMLHelper(cell: string | number): string {
+    let cellStr;
+    if (typeof cell === "number") {
+      cellStr = cell.toString();
+    } else {
+      cellStr = cell;
+    }
+    return `<td>${cell}</td>`;
+  }
+
+  protected makeInnerHTML(): string {
+    return `<table>${this.codeObj
+      .map((row) => {
+        return `<tr>${row
+          .map((cell) => this.makeInnerHTMLHelper(cell))
+          .join("\n")}</tr>`;
+      })
+      .join("\n")}</table>`;
   }
 }
 
@@ -119,11 +145,11 @@ const modeCommand: CommandFunction<string> = (args) => {
   return new CommandHTMLLog<string>(log);
 };
 
-let loadedCSV: Array<Array<string | number>>;
+let loadedCSV: CSV;
 
 function loadHelper(filePath: string): boolean {
-  if (filePath in mockJsonMap) {
-    loadedCSV = mockJsonMap[filePath];
+  if (filePath in mockLoadMap) {
+    loadedCSV = mockLoadMap[filePath];
     return true;
   } else {
     return false;
@@ -149,7 +175,7 @@ const loadCommand: CommandFunction<string> = (args) => {
   });
 };
 
-function viewHelper(): Array<Array<string | number>> | null {
+function viewHelper(): CSV | null {
   if (loadedCSV == undefined) {
     return null;
   } else {
@@ -157,21 +183,26 @@ function viewHelper(): Array<Array<string | number>> | null {
   }
 }
 
-const viewCommand: CommandFunction<string> = (args) => {
-  let toReturn = `Exception: view expected 0 arguments but found ${
-    args.length - 1
-  }.`;
-  if (args.length == 2) {
+const viewCommand: CommandFunction<CSV | string> = (args) => {
+  let toReturn:
+    | string
+    | Array<
+        Array<string | number>
+      > = `Exception: view expected 0 arguments but found ${args.length - 1}.`;
+  if (args.length == 1) {
     if (viewHelper() != null) {
-      toReturn = `Successfully loaded ${args[1]}.`;
+      toReturn = loadedCSV;
     } else {
-      toReturn = `Could not find ${args[1]}.`;
+      toReturn = `No CSV file loaded.`;
     }
   }
 
-  return new CommandHTMLLog<string>({
+  return new CommandHTMLLog<CSV | string>({
     command: "view",
-    output: new ParagraphHTML(`view command executed with args: ${args}`),
+    output:
+      typeof toReturn === "string"
+        ? new ParagraphHTML(toReturn)
+        : new TableHTML(toReturn),
     inVerboseMode: isModeVerbose,
   });
 };
@@ -189,10 +220,15 @@ const searchCommand: CommandFunction<string> = (args) => {
 let commandInput: HTMLInputElement;
 let history: Array<CommandHTMLLog<string> | ErrHTMLLog> = [];
 
+type CSVRow = Array<string | number>;
+type CSV = Array<CSVRow>;
+
 let isModeVerbose: boolean = false;
 const commandMap: { [commandName: string]: CommandFunction<any> } = {
   mode: modeCommand,
   load_file: loadCommand,
+  view: viewCommand,
+  search: searchCommand,
 };
 
 function prepareKeypress() {
@@ -272,7 +308,9 @@ function isDivPresent(maybeDiv: Element | null, className: string): boolean {
 }
 
 function updateCommandHistoryState() {
-  const args: Array<string> = commandInput.value.split(/\s+/).filter((n) => n);
+  const args: Array<string> = commandInput.value
+    .split(/[^\s"]+|"(.*?)"/)
+    .filter((n) => n);
   console.log(`args: ${JSON.stringify(args)}`);
   if (args.length === 0) {
     history.push(new ErrHTMLLog({ errMessage: "submitted empty string" }));

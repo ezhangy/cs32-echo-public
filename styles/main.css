@@ -5,8 +5,8 @@
 */
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-  'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue';
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue";
 }
 
 .repl {
@@ -24,16 +24,9 @@ p {
 .repl-history {
   /* font family from 
   https://qwtel.com/posts/software/the-monospaced-system-ui-css-font-stack/ */
-  font-family: ui-monospace, 
-             Menlo, Monaco, 
-             "Cascadia Mono", "Segoe UI Mono", 
-             "Roboto Mono", 
-             "Oxygen Mono", 
-             "Ubuntu Monospace", 
-             "Source Code Pro",
-             "Fira Mono", 
-             "Droid Sans Mono", 
-             "Courier New", monospace;
+  font-family: ui-monospace, Menlo, Monaco, "Cascadia Mono", "Segoe UI Mono",
+    "Roboto Mono", "Oxygen Mono", "Ubuntu Monospace", "Source Code Pro",
+    "Fira Mono", "Droid Sans Mono", "Courier New", monospace;
   height: 85vh;
   max-height: 85vh;
   margin: auto;
@@ -57,4 +50,8 @@ p {
 .repl-button {
   margin: auto;
   display: block;
+}
+
+td {
+  border: 1px solid #000000;
 }
