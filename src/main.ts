@@ -1,3 +1,4 @@
+import { HtmlHTMLAttributes } from "react";
 import { mockLoadMap } from "./mockedJson.js";
 
 // The window.onload callback is invoked when the window is first loaded by the browser
@@ -10,24 +11,38 @@ window.onload = () => {
   // should be HTMLButtonElement. The handler function for a "click" takes no arguments.
 };
 
-abstract class HTMLableObject<T> {
-  protected abstract makeInnerHTML(): string;
-  readonly codeObj: T;
 
-  constructor(codeObj: T) {
+interface HTMLCreator<T> {
+  makeInnerHTML(javascriptObj: T): string;
+}
+
+class HTMLableObject<T> {
+  readonly codeObj: T;
+  private readonly creator: HTMLCreator<T>;
+
+  constructor(codeObj: T, creator: HTMLCreator<T>) {
     this.codeObj = codeObj;
+    this.creator = creator;
   }
 
   toHTMLTemplate(): HTMLTemplateElement {
     const template: HTMLTemplateElement = document.createElement("template");
-    template.innerHTML = this.makeInnerHTML();
+    template.innerHTML = this.creator.makeInnerHTML(this.codeObj);
     return template;
+  }
+}
+
+
+class ParagraphEltCreator implements HTMLCreator<string> {
+  makeInnerHTML(javascriptObj: string): string {
+    return `<p>${javascriptObj}</p>`;
   }
 }
 
 interface CommandLog<T> {
   readonly command: string;
-  readonly output: HTMLableObject<T>;
+  readonly outputCreator: HTMLCreator<T>;
+  readonly output: T;
   inVerboseMode: boolean;
 }
 
@@ -35,36 +50,14 @@ interface ErrLog {
   readonly errMessage: string;
 }
 
-class ErrHTMLLog extends HTMLableObject<ErrLog> {
-  readonly className: string;
-
-  constructor(errLog: ErrLog) {
-    super(errLog);
-    this.className = "err-log";
-  }
-
-  protected makeInnerHTML(): string {
-    const errLog: ErrLog = this.codeObj;
-    return `<p>${this.codeObj.errMessage}</p>`;
+class ErrLogCreator implements HTMLCreator<ErrLog> {
+  makeInnerHTML(javascriptObj: ErrLog): string {
+    return `<p>${javascriptObj.errMessage}</p>`;
   }
 }
 
-class ParagraphHTML extends HTMLableObject<string> {
-  constructor(strObj: string) {
-    super(strObj);
-  }
-
-  protected makeInnerHTML(): string {
-    return `<p>${this.codeObj}</p>`;
-  }
-}
-
-class TableHTML extends HTMLableObject<CSV> {
-  constructor(arrObj: CSV) {
-    super(arrObj);
-  }
-
-  protected makeInnerHTMLHelper(cell: string | number): string {
+class TableCreator implements HTMLCreator<CSV> {
+  private makeInnerHTMLHelper(cell: string | number): string {
     let cellStr;
     if (typeof cell === "number") {
       cellStr = cell.toString();
@@ -74,8 +67,8 @@ class TableHTML extends HTMLableObject<CSV> {
     return `<td>${cell}</td>`;
   }
 
-  protected makeInnerHTML(): string {
-    return `<table>${this.codeObj
+  makeInnerHTML(javascriptObj: CSV): string {
+     return `<table>${javascriptObj
       .map((row) => {
         return `<tr>${row
           .map((cell) => this.makeInnerHTMLHelper(cell))
@@ -85,53 +78,28 @@ class TableHTML extends HTMLableObject<CSV> {
   }
 }
 
-class CommandHTMLLog<T> extends HTMLableObject<CommandLog<T>> {
-  readonly className: string;
-
-  constructor(commandLog: CommandLog<T>) {
-    super(commandLog);
-    this.className = "command-log";
-  }
-
-  protected makeInnerHTML(): string {
-    const command: string = this.codeObj.command;
-    const output: string = this.codeObj.output.toHTMLTemplate().innerHTML;
-    const inVerboseMode: boolean = this.codeObj.inVerboseMode;
-
-    return inVerboseMode
+class CommandLogCreator<T> implements HTMLCreator<CommandLog<T>>{
+  makeInnerHTML(obj: CommandLog<T>): string {
+    const commandLog: CommandLog<T> = obj;
+    const outputHTMLable: HTMLableObject<T> = 
+      new HTMLableObject<T>(commandLog.output, commandLog.outputCreator)
+    const outputHTML = outputHTMLable.toHTMLTemplate().innerHTML;
+    return commandLog.inVerboseMode 
       ? `
-          <p>Command: ${command}</p>
-          <div class="command-output"><span>Output:</span>${output}</div>
-      `
-      : `
-          <div class="command-output">${output}</div>
-      `;
+        <p>Command: ${commandLog.command}</p>
+        <div class="command-output"><span>Output:</span>${outputHTML}</div>
+        `
+      : `<div class="command-output">${outputHTML}</div>`
   }
 }
 
-// class TableOutput implements HTMLable {
-//   output: string;
-//   constructor(output: string) {
-//     this.output = output;
-//   }
-//   toHTMLTemplate(): HTMLTemplateElement {
-//     //TODO: return table elt
-//     const template: HTMLTemplateElement = document.createElement("template")
-//     template.innerHTML = this.output;
-//     return template;
-//   }
-// }
 
 type CommandFunction<T> = {
-  (args: Array<string>): CommandHTMLLog<T>;
+  (args: Array<string>): CommandLog<T>;
 };
 
-function stringToParagraphElt(str: string): HTMLParagraphElement {
-  const paragraphElement: HTMLParagraphElement = document.createElement("p");
-  const newContent: Text = document.createTextNode(str);
-  paragraphElement.appendChild(newContent);
-  return paragraphElement;
-}
+type Log = CommandLog<CommandOutputType> | ErrLog;
+
 
 const modeCommand: CommandFunction<string> = (args) => {
   //TODO: think about checking args passed into the command
@@ -139,10 +107,11 @@ const modeCommand: CommandFunction<string> = (args) => {
   let output = `mode changed to ${isModeVerbose ? "verbose" : "brief"}`;
   const log: CommandLog<string> = {
     command: "mode",
-    output: new ParagraphHTML(output),
+    outputCreator: new ParagraphEltCreator(),
+    output: output,
     inVerboseMode: isModeVerbose,
   };
-  return new CommandHTMLLog<string>(log);
+  return log;
 };
 
 let loadedCSV: CSV;
@@ -157,22 +126,23 @@ function loadHelper(filePath: string): boolean {
 }
 
 const loadCommand: CommandFunction<string> = (args) => {
-  let toReturn = `Exception: load_file expected 1 argument but found ${
+  let output = `Exception: load_file expected 1 argument but found ${
     args.length - 1
   }.`;
   if (args.length == 2) {
     if (loadHelper(args[1])) {
-      toReturn = `Successfully loaded ${args[1]}.`;
+      output = `Successfully loaded ${args[1]}.`;
     } else {
-      toReturn = `Could not find ${args[1]}.`;
+      output = `Could not find ${args[1]}.`;
     }
   }
 
-  return new CommandHTMLLog<string>({
+  return {
     command: "load_file",
-    output: new ParagraphHTML(toReturn),
+    outputCreator: new ParagraphEltCreator(),
+    output: output,
     inVerboseMode: isModeVerbose,
-  });
+  };
 };
 
 function viewHelper(): CSV | null {
@@ -184,47 +154,48 @@ function viewHelper(): CSV | null {
 }
 
 const viewCommand: CommandFunction<CSV | string> = (args) => {
-  let toReturn:
+  let output:
     | string
     | Array<
         Array<string | number>
       > = `Exception: view expected 0 arguments but found ${args.length - 1}.`;
   if (args.length == 1) {
     if (viewHelper() != null) {
-      toReturn = loadedCSV;
+      output = loadedCSV;
     } else {
-      toReturn = `No CSV file loaded.`;
+      output = `No CSV file loaded.`;
     }
   }
 
-  return new CommandHTMLLog<CSV | string>({
+  return {
     command: "view",
-    output:
-      typeof toReturn === "string"
-        ? new ParagraphHTML(toReturn)
-        : new TableHTML(toReturn),
+    outputCreator: typeof output === "string"
+      ? new ParagraphEltCreator
+      : new TableCreator,
+    output: output,
     inVerboseMode: isModeVerbose,
-  });
+  }
 };
 
 const searchCommand: CommandFunction<string> = (args) => {
   const log: CommandLog<string> = {
     command: "search",
-    output: new ParagraphHTML(`search command executed with args: ${args}`),
+    outputCreator: new ParagraphEltCreator(),
+    output: `search command executed with args: ${args}`,
     inVerboseMode: isModeVerbose,
   };
-
-  return new CommandHTMLLog<string>(log);
+  return log
 };
 
 let commandInput: HTMLInputElement;
-let history: Array<CommandHTMLLog<string> | ErrHTMLLog> = [];
+let history: Array<CommandLog<CSV | string>| ErrLog> = [];
 
 type CSVRow = Array<string | number>;
 type CSV = Array<CSVRow>;
+type CommandOutputType = string | CSV
 
 let isModeVerbose: boolean = false;
-const commandMap: { [commandName: string]: CommandFunction<any> } = {
+const commandMap: { [commandName: string]: CommandFunction<CommandOutputType> } = {
   mode: modeCommand,
   load_file: loadCommand,
   view: viewCommand,
@@ -308,18 +279,23 @@ function isDivPresent(maybeDiv: Element | null, className: string): boolean {
 }
 
 function updateCommandHistoryState() {
-  const args: Array<string> = commandInput.value
-    .split(/[^\s"]+|"(.*?)"/)
-    .filter((n) => n);
+  let args: Array<string> = []
+  const regex: RegExp = /(?:[^\s"]+|"[^"]*")+/
+  const regexMatches: RegExpMatchArray | null = commandInput.value.match(regex)
+  if (regexMatches != null) {
+    args = regexMatches;
+  }
+
   console.log(`args: ${JSON.stringify(args)}`);
+  console.log(`view in commandMap ${"view" in commandMap}`)
   if (args.length === 0) {
-    history.push(new ErrHTMLLog({ errMessage: "submitted empty string" }));
+    history.push({ errMessage: "submitted empty string" });
   } else if (args[0] in commandMap) {
-    const commandFunction: CommandFunction<string> = commandMap[args[0]];
+    const commandFunction: CommandFunction<CommandOutputType> = commandMap[args[0]];
     history.push(commandFunction(args));
   } else {
     history.push(
-      new ErrHTMLLog({ errMessage: `command ${args[0]} not found` })
+      { errMessage: `command ${args[0]} not found` }
     );
   }
 }
@@ -343,10 +319,20 @@ function renderCommandHistory() {
   } else {
     const historyDiv: Element = maybeHistoryDiv;
     const logDivs: Array<DocumentFragment> = history.map((log) => {
-      const logTemplate: HTMLTemplateElement = log.toHTMLTemplate();
+      let logTemplate: HTMLTemplateElement = document.createElement("template")
+      let logHTMLObj: HTMLableObject<Log>;
+      let className: string;
+      if ("errMessage" in log) {
+        logHTMLObj = new HTMLableObject(log, new ErrLogCreator())
+        className = "err-log"
+      } else {
+        logHTMLObj = new HTMLableObject(log, new CommandLogCreator())
+        className = "command-log"
+      }
+
       logTemplate.innerHTML = `
-        <div ${log.className} />
-          <span>></span> ${logTemplate.innerHTML}
+        <div ${className} />
+          <span>></span> ${logHTMLObj.toHTMLTemplate().innerHTML}
         <div />
       `;
       return logTemplate.content;
