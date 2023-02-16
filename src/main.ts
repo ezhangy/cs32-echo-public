@@ -161,7 +161,7 @@ const viewCommand: CommandFunction<CSV | string> = (args) => {
       > = `Exception: view expected 0 arguments but found ${args.length - 1}.`;
   if (args.length == 1) {
     if (viewHelper() != null) {
-      output = loadedCSV;
+      console.log(`loadedCSV is ${JSON.stringify(loadedCSV)}`)
     } else {
       output = `No CSV file loaded.`;
     }
@@ -279,12 +279,11 @@ function isDivPresent(maybeDiv: Element | null, className: string): boolean {
 }
 
 function updateCommandHistoryState() {
-  let args: Array<string> = []
-  const regex: RegExp = /(?:[^\s"]+|"[^"]*")+/
-  const regexMatches: RegExpMatchArray | null = commandInput.value.match(regex)
-  if (regexMatches != null) {
-    args = regexMatches;
-  }
+  const regex: RegExp = /[^\s]+|"(.*?)"/g
+  const regexMatches: RegExpMatchArray | null = commandInput.value.match(regex);
+  const args: Array<string> = regexMatches != null 
+    ? regexMatches.filter(n => n != null || n === " ")
+    : []
 
   console.log(`args: ${JSON.stringify(args)}`);
   console.log(`view in commandMap ${"view" in commandMap}`)
