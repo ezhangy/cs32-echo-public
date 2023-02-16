@@ -1,4 +1,4 @@
-import { mockJsonMap } from "./mockedJson";
+import { mockJsonMap } from "./mockedJson.js";
 
 // The window.onload callback is invoked when the window is first loaded by the browser
 window.onload = () => {
@@ -109,7 +109,7 @@ const modeCommand: CommandFunction<string> = (args) => {
   return new CommandHTMLLog<string>(log);
 };
 
-let loadedCSV: Array<Array<string | number>> = [[]];
+let loadedCSV: Array<Array<string | number>>;
 
 function loadHelper(filePath: string): boolean {
   if (filePath in mockJsonMap) {
@@ -121,30 +121,49 @@ function loadHelper(filePath: string): boolean {
 }
 
 const loadCommand: CommandFunction<string> = (args) => {
-  let output;
+  let toReturn = `Exception: load_file expected 1 argument but found ${
+    args.length - 1
+  }.`;
   if (args.length == 2) {
     if (loadHelper(args[1])) {
-      output = `Successfully loaded ${args[1]}.`;
+      toReturn = `Successfully loaded ${args[1]}.`;
     } else {
-      output = `Could not find ${args[1]}.`;
+      toReturn = `Could not find ${args[1]}.`;
     }
   }
 
   return new CommandHTMLLog<string>({
     command: "load_file",
-    output: `load_file command executed with args: ${args}`,
+    output: toReturn,
     inVerboseMode: isModeVerbose,
   });
 };
 
+function viewHelper(): Array<Array<string | number>> | null {
+  if (loadedCSV == undefined) {
+    return null;
+  } else {
+    return loadedCSV;
+  }
+}
+
 const viewCommand: CommandFunction<string> = (args) => {
-  const log: CommandLog<string> = {
+  let toReturn = `Exception: view expected 0 arguments but found ${
+    args.length - 1
+  }.`;
+  if (args.length == 2) {
+    if (viewHelper() != null) {
+      toReturn = `Successfully loaded ${args[1]}.`;
+    } else {
+      toReturn = `Could not find ${args[1]}.`;
+    }
+  }
+
+  return new CommandHTMLLog<string>({
     command: "view",
     output: `view command executed with args: ${args}`,
     inVerboseMode: isModeVerbose,
-  };
-
-  return new CommandHTMLLog<string>(log);
+  });
 };
 
 const searchCommand: CommandFunction<string> = (args) => {
