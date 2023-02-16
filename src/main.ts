@@ -27,7 +27,7 @@ abstract class HTMLableObject<T> {
 
 interface CommandLog<T> {
   readonly command: string;
-  readonly output: T;
+  readonly output: HTMLableObject<T>;
   inVerboseMode: boolean;
 }
 
@@ -49,6 +49,16 @@ class ErrHTMLLog extends HTMLableObject<ErrLog> {
   }
 }
 
+class ParagraphHTML extends HTMLableObject<string> {
+  constructor(strObj: string) {
+    super(strObj)
+  }
+
+  protected makeInnerHTML(): string {
+    return `<p>${this.codeObj}</p>`
+  }
+}
+
 class CommandHTMLLog<T> extends HTMLableObject<CommandLog<T>> {
   readonly className: string;
 
@@ -59,7 +69,7 @@ class CommandHTMLLog<T> extends HTMLableObject<CommandLog<T>> {
 
   protected makeInnerHTML(): string {
     const command: string = this.codeObj.command;
-    const output: T = this.codeObj.output;
+    const output: string = this.codeObj.output.toHTMLTemplate().innerHTML;
     const inVerboseMode: boolean = this.codeObj.inVerboseMode;
 
     return inVerboseMode
@@ -103,7 +113,7 @@ const modeCommand: CommandFunction<string> = (args) => {
   let output = `mode changed to ${isModeVerbose ? "verbose" : "brief"}`;
   const log: CommandLog<string> = {
     command: "mode",
-    output: output,
+    output: new ParagraphHTML(output),
     inVerboseMode: isModeVerbose,
   };
   return new CommandHTMLLog<string>(log);
@@ -134,7 +144,7 @@ const loadCommand: CommandFunction<string> = (args) => {
 
   return new CommandHTMLLog<string>({
     command: "load_file",
-    output: toReturn,
+    output: new ParagraphHTML(toReturn),
     inVerboseMode: isModeVerbose,
   });
 };
@@ -161,7 +171,7 @@ const viewCommand: CommandFunction<string> = (args) => {
 
   return new CommandHTMLLog<string>({
     command: "view",
-    output: `view command executed with args: ${args}`,
+    output: new ParagraphHTML(`view command executed with args: ${args}`),
     inVerboseMode: isModeVerbose,
   });
 };
@@ -169,7 +179,7 @@ const viewCommand: CommandFunction<string> = (args) => {
 const searchCommand: CommandFunction<string> = (args) => {
   const log: CommandLog<string> = {
     command: "search",
-    output: `search command executed with args: ${args}`,
+    output: new ParagraphHTML(`search command executed with args: ${args}`),
     inVerboseMode: isModeVerbose,
   };
 
