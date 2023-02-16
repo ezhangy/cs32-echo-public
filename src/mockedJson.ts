@@ -18,23 +18,27 @@ const mockLoadMap: { [fileName: string]: Array<Array<string | number>> } = {
   ["numberCSV.csv"]: numberCSV,
 };
 
-const stringCSVSearchMap: { [searchTerm: string]: Array<number> } = {
-  ["tim"]: [0],
-  ["nelson"]: [0],
-  ["instructor"]: [0],
-  ["john"]: [1],
-  ["jane"]: [2],
-  ["doe"]: [1, 2],
-  ["student"]: [1, 2],
+const stringCSVSearchMap: {
+  [searchTerm: string]: Array<Array<string | number>>;
+} = {
+  ["tim"]: [stringCSV[0]],
+  ["nelson"]: [stringCSV[0]],
+  ["instructor"]: [stringCSV[0]],
+  ["john"]: [stringCSV[1]],
+  ["jane"]: [stringCSV[2]],
+  ["doe"]: [stringCSV[1], stringCSV[2]],
+  ["student"]: [stringCSV[1], stringCSV[2]],
 };
 
-const numberCSVSearchMap: { [searchTerm: string]: Array<number> } = {
-  [0]: [0],
-  [1]: [0],
-  [2]: [0, 1],
-  [3]: [1, 2],
-  [4]: [1, 2],
-  [5]: [2],
+const numberCSVSearchMap: {
+  [searchTerm: string]: Array<Array<string | number>>;
+} = {
+  [0]: [numberCSV[0]],
+  [1]: [numberCSV[0]],
+  [2]: [numberCSV[0], numberCSV[1]],
+  [3]: [numberCSV[1], numberCSV[2]],
+  [4]: [numberCSV[1], numberCSV[2]],
+  [5]: [numberCSV[2]],
 };
 
 // Provide this to other modules (e.g., for testing!)
