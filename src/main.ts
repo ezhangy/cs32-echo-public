@@ -1,5 +1,9 @@
-import { HtmlHTMLAttributes } from "react";
 import { mockLoadMap } from "./mockedJson.js";
+import { HTMLableObject } from "./components/HTMLableObject.js";
+import { CSV } from "./components/csv/CSV.types.js";
+import { Log, CommandLog, ErrLog } from "./components/log/Log.types.js";
+import { CommandLogCreator, ErrLogCreator } from "./components/log/LogCreators.js";
+import { commandMap, Command } from "./components/commands/allcommands.js";
 
 // The window.onload callback is invoked when the window is first loaded by the browser
 window.onload = () => {
@@ -11,196 +15,15 @@ window.onload = () => {
   // should be HTMLButtonElement. The handler function for a "click" takes no arguments.
 };
 
-
-interface HTMLCreator<T> {
-  makeInnerHTML(javascriptObj: T): string;
-}
-
-class HTMLableObject<T> {
-  readonly codeObj: T;
-  private readonly creator: HTMLCreator<T>;
-
-  constructor(codeObj: T, creator: HTMLCreator<T>) {
-    this.codeObj = codeObj;
-    this.creator = creator;
-  }
-
-  toHTMLTemplate(): HTMLTemplateElement {
-    const template: HTMLTemplateElement = document.createElement("template");
-    template.innerHTML = this.creator.makeInnerHTML(this.codeObj);
-    return template;
-  }
-}
-
-
-class ParagraphEltCreator implements HTMLCreator<string> {
-  makeInnerHTML(javascriptObj: string): string {
-    return `<p>${javascriptObj}</p>`;
-  }
-}
-
-interface CommandLog<T> {
-  readonly command: string;
-  readonly outputCreator: HTMLCreator<T>;
-  readonly output: T;
-  inVerboseMode: boolean;
-}
-
-interface ErrLog {
-  readonly errMessage: string;
-}
-
-class ErrLogCreator implements HTMLCreator<ErrLog> {
-  makeInnerHTML(javascriptObj: ErrLog): string {
-    return `<p>${javascriptObj.errMessage}</p>`;
-  }
-}
-
-class TableCreator implements HTMLCreator<CSV> {
-  private makeInnerHTMLHelper(cell: string | number): string {
-    let cellStr;
-    if (typeof cell === "number") {
-      cellStr = cell.toString();
-    } else {
-      cellStr = cell;
-    }
-    return `<td>${cell}</td>`;
-  }
-
-  makeInnerHTML(javascriptObj: CSV): string {
-     return `<table>${javascriptObj
-      .map((row) => {
-        return `<tr>${row
-          .map((cell) => this.makeInnerHTMLHelper(cell))
-          .join("\n")}</tr>`;
-      })
-      .join("\n")}</table>`;
-  }
-}
-
-class CommandLogCreator<T> implements HTMLCreator<CommandLog<T>>{
-  makeInnerHTML(obj: CommandLog<T>): string {
-    const commandLog: CommandLog<T> = obj;
-    const outputHTMLable: HTMLableObject<T> = 
-      new HTMLableObject<T>(commandLog.output, commandLog.outputCreator)
-    const outputHTML = outputHTMLable.toHTMLTemplate().innerHTML;
-    return commandLog.inVerboseMode 
-      ? `
-        <p>Command: ${commandLog.command}</p>
-        <div class="command-output"><span>Output:</span>${outputHTML}</div>
-        `
-      : `<div class="command-output">${outputHTML}</div>`
-  }
-}
-
-
-type CommandFunction<T> = {
-  (args: Array<string>): CommandLog<T>;
-};
-
-type Log = CommandLog<CommandOutputType> | ErrLog;
-
-
-const modeCommand: CommandFunction<string> = (args) => {
-  //TODO: think about checking args passed into the command
-  isModeVerbose = !isModeVerbose;
-  let output = `mode changed to ${isModeVerbose ? "verbose" : "brief"}`;
-  const log: CommandLog<string> = {
-    command: "mode",
-    outputCreator: new ParagraphEltCreator(),
-    output: output,
-    inVerboseMode: isModeVerbose,
-  };
-  return log;
-};
-
 let loadedCSV: CSV;
-
-function loadHelper(filePath: string): boolean {
-  if (filePath in mockLoadMap) {
-    loadedCSV = mockLoadMap[filePath];
-    return true;
-  } else {
-    return false;
-  }
-}
-
-const loadCommand: CommandFunction<string> = (args) => {
-  let output = `Exception: load_file expected 1 argument but found ${
-    args.length - 1
-  }.`;
-  if (args.length == 2) {
-    if (loadHelper(args[1])) {
-      output = `Successfully loaded ${args[1]}.`;
-    } else {
-      output = `Could not find ${args[1]}.`;
-    }
-  }
-
-  return {
-    command: "load_file",
-    outputCreator: new ParagraphEltCreator(),
-    output: output,
-    inVerboseMode: isModeVerbose,
-  };
-};
-
-function viewHelper(): CSV | null {
-  if (loadedCSV == undefined) {
-    return null;
-  } else {
-    return loadedCSV;
-  }
-}
-
-const viewCommand: CommandFunction<CSV | string> = (args) => {
-  let output:
-    | string
-    | Array<
-        Array<string | number>
-      > = `Exception: view expected 0 arguments but found ${args.length - 1}.`;
-  if (args.length == 1) {
-    if (viewHelper() != null) {
-      console.log(`loadedCSV is ${JSON.stringify(loadedCSV)}`)
-    } else {
-      output = `No CSV file loaded.`;
-    }
-  }
-
-  return {
-    command: "view",
-    outputCreator: typeof output === "string"
-      ? new ParagraphEltCreator
-      : new TableCreator,
-    output: output,
-    inVerboseMode: isModeVerbose,
-  }
-};
-
-const searchCommand: CommandFunction<string> = (args) => {
-  const log: CommandLog<string> = {
-    command: "search",
-    outputCreator: new ParagraphEltCreator(),
-    output: `search command executed with args: ${args}`,
-    inVerboseMode: isModeVerbose,
-  };
-  return log
-};
-
 let commandInput: HTMLInputElement;
 let history: Array<CommandLog<CSV | string>| ErrLog> = [];
-
-type CSVRow = Array<string | number>;
-type CSV = Array<CSVRow>;
-type CommandOutputType = string | CSV
-
 let isModeVerbose: boolean = false;
-const commandMap: { [commandName: string]: CommandFunction<CommandOutputType> } = {
-  mode: modeCommand,
-  load_file: loadCommand,
-  view: viewCommand,
-  search: searchCommand,
-};
+
+function toggleVerbosity(): void {
+  isModeVerbose = isModeVerbose
+  isModeVerbose = !isModeVerbose;
+}
 
 function prepareKeypress() {
   // As far as TypeScript knows, there may be *many* elements with this class.
@@ -259,25 +82,6 @@ function handleKeypress(event: KeyboardEvent) {
   );
 }
 
-// function handleMouseClick() {
-//   // The event has more fields than just the key pressed (e.g., Alt, Ctrl, etc.)
-//   clickCount = clickCount + 1;
-//   console.log(`${getMouseClickCount()} clicks seen so far.`);
-//   console.log(commandInput.value);
-//   updateHistoryAndRender();
-// }
-
-function isDivPresent(maybeDiv: Element | null, className: string): boolean {
-  if (maybeDiv == null) {
-    console.log(`Couldn't find div with class ${className}`);
-    return false;
-  } else if (!(maybeDiv instanceof HTMLDivElement)) {
-    console.log(`Found element ${maybeDiv},but it wasn't a div`);
-    return false;
-  }
-  return true;
-}
-
 function updateCommandHistoryState() {
   const regex: RegExp = /[^\s]+|"(.*?)"/g
   const regexMatches: RegExpMatchArray | null = commandInput.value.match(regex);
@@ -290,8 +94,8 @@ function updateCommandHistoryState() {
   if (args.length === 0) {
     history.push({ errMessage: "submitted empty string" });
   } else if (args[0] in commandMap) {
-    const commandFunction: CommandFunction<CommandOutputType> = commandMap[args[0]];
-    history.push(commandFunction(args));
+    const command: Command = commandMap[args[0]];
+    history.push(command.run(args));
   } else {
     history.push(
       { errMessage: `command ${args[0]} not found` }
@@ -351,4 +155,4 @@ function getHistory() {
 
 // Provide this to other modules (e.g., for testing!)
 // The configuration in this project will require /something/ to be exported.
-export { handleKeypress, prepareKeypress, getPressCount };
+export { handleKeypress, prepareKeypress, getPressCount, isModeVerbose, loadedCSV, mockLoadMap, toggleVerbosity };
