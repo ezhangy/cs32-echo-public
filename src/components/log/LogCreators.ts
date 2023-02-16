@@ -1,5 +1,5 @@
 import { HTMLCreator } from "../HTMLCreator.types";
-import { HTMLableObject } from "../HTMLableObject";
+import { HTMLableObject } from "../HTMLableObject.js";
 import { CommandLog, ErrLog } from "./Log.types";
 
 class CommandLogCreator<T> implements HTMLCreator<CommandLog<T>>{

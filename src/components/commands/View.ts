@@ -1,8 +1,9 @@
-import { loadedCSV, isModeVerbose } from "../../main";
+import { loadedCSV, isModeVerbose } from "../../main.js";
 import { CSV } from "../csv/CSV.types";
-import { TableCreator } from "../csv/CSVCreators";
+import { TableCreator } from "../csv/CSVCreators.js";
+import { HTMLableObject } from "../HTMLableObject.js";
 import { CommandLog, CommandOutputType } from "../log/Log.types";
-import { ParagraphEltCreator } from "../utilityCreators/ParagraphEltCreator";
+import { ParagraphEltCreator } from "../utilityCreators/ParagraphEltCreator.js";
 import { Command } from "./Command.types";
 
 
@@ -16,28 +17,27 @@ export class View implements Command {
   }
 
   run(args: string[]): CommandLog<CommandOutputType> {
-    let output:
+    let toReturn:
     | string
     | Array<
         Array<string | number>
       > = `Exception: view expected 0 arguments but found ${args.length - 1}.`;
-  if (args.length == 1) {
-    if (this.viewHelper() != null) {
-      console.log(`loadedCSV is ${JSON.stringify(loadedCSV)}`)
-    } else {
-      output = `No CSV file loaded.`;
+    if (args.length == 1) {
+      if (this.viewHelper() != null) {
+        toReturn = loadedCSV;
+      } else {
+        toReturn = `No CSV file loaded.`;
+      }
     }
-  }
 
-  const log: CommandLog<CommandOutputType> = {
-    command: "view",
-    outputCreator: typeof output === "string"
-      ? new ParagraphEltCreator
-      : new TableCreator,
-    output: output,
-    inVerboseMode: isModeVerbose,
-  }
-
-  return log
+    return {
+      command: "view",
+      outputCreator: 
+        typeof toReturn === "string"
+          ? new ParagraphEltCreator()
+          : new TableCreator(),
+      output: toReturn,
+      inVerboseMode: isModeVerbose,
+    }
   }
 }

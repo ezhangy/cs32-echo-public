@@ -1,18 +1,19 @@
-import { isModeVerbose } from "../../main";
-import { mockLoadMap } from "../../mockedJson";
+import { isModeVerbose, setLoadedCSV } from "../../main.js";
+import { mockLoadMap } from "../../mockedJson.js";
 import { CSV } from "../csv/CSV.types";
 import { CommandLog, CommandOutputType } from "../log/Log.types";
-import { ParagraphEltCreator } from "../utilityCreators/ParagraphEltCreator";
+import { ParagraphEltCreator } from "../utilityCreators/ParagraphEltCreator.js";
 import { Command } from "./Command.types";
 
 
 
 export class Load implements Command {
-  public loadHelper(filePath: string): CSV | null {
+  public loadHelper(filePath: string): boolean {
     if (filePath in mockLoadMap) {
-      return mockLoadMap[filePath];
+      setLoadedCSV(mockLoadMap[filePath])
+      return true;
     } else {
-      return null;
+      return false;
     }
   }
   
@@ -34,6 +35,5 @@ export class Load implements Command {
       output: output,
       inVerboseMode: isModeVerbose,
     };
-  };
+  }
 }
-

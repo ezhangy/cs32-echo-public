@@ -25,6 +25,10 @@ function toggleVerbosity(): void {
   isModeVerbose = !isModeVerbose;
 }
 
+function setLoadedCSV(csvToLoad: CSV) {
+  loadedCSV = csvToLoad;
+}
+
 function prepareKeypress() {
   // As far as TypeScript knows, there may be *many* elements with this class.
   const maybeInputs: HTMLCollectionOf<Element> =
@@ -155,4 +159,4 @@ function getHistory() {
 
 // Provide this to other modules (e.g., for testing!)
 // The configuration in this project will require /something/ to be exported.
-export { handleKeypress, prepareKeypress, getPressCount, isModeVerbose, loadedCSV, mockLoadMap, toggleVerbosity };
+export { handleKeypress, prepareKeypress, getPressCount, isModeVerbose, loadedCSV, mockLoadMap, toggleVerbosity, setLoadedCSV};

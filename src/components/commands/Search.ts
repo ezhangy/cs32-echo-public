@@ -1,6 +1,6 @@
-import { isModeVerbose } from "../../main";
+import { isModeVerbose } from "../../main.js";
 import { CommandLog, CommandOutputType } from "../log/Log.types";
-import { ParagraphEltCreator } from "../utilityCreators/ParagraphEltCreator";
+import { ParagraphEltCreator } from "../utilityCreators/ParagraphEltCreator.js";
 import { Command } from "./Command.types";
 
 
