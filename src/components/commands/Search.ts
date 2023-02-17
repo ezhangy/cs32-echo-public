@@ -1,9 +1,9 @@
 import { getIsModeVerbose, loadedCSV, mockLoadMap } from "../../main.js";
 import { numberCSVSearchMap, stringCSVSearchMap } from "../../mockedJson.js";
-import { Result } from "../../ResultCreator.js";
+import { Result } from "../creators/ResultCreator";
 import { CSV } from "../csv/CSV.types.js";
 import { TableCreator } from "../csv/CSVCreators.js";
-import { ParagraphEltCreator } from "../utilityCreators/ParagraphEltCreator.js";
+import { ParagraphEltCreator } from "../creators/ParagraphEltCreator.js";
 import { Command } from "./Command.types";
 
 export class Search implements Command<string | CSV> {

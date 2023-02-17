@@ -1,4 +1,4 @@
-import { HTMLCreator } from "../HTMLCreator.types";
+import { HTMLCreator } from "../creators/HTMLCreator.types";
 import { CSV, CSVRow } from "./CSV.types";
 
 export class CSVRowCreator implements HTMLCreator<CSVRow> {

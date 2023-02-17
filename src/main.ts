@@ -1,5 +1,12 @@
-import { mockLoadMap } from "./mockedJson.js";
+import { Command } from "./components/commands/Command.types.js";
+import { Load } from "./components/commands/Load.js";
+import { Mode } from "./components/commands/Mode.js";
+import { Search } from "./components/commands/Search.js";
+import { View } from "./components/commands/View.js";
+import { ParagraphEltCreator } from "./components/creators/ParagraphEltCreator.js";
+import { Result, ResultCreator } from "./components/creators/ResultCreator.js";
 import { CSV } from "./components/csv/CSV.types.js";
+
 import {
   Command,
   Load,
@@ -7,13 +14,9 @@ import {
   Search,
   View,
 } from "./components/commands/allcommands.js";
-import { HTMLConverter } from "./components/HTMLConverter.js";
-import { Result, ResultCreator } from "./ResultCreator.js";
-import { ParagraphEltCreator } from "./components/utilityCreators/ParagraphEltCreator.js";
 
 // The window.onload callback is invoked when the window is first loaded by the browser
 window.onload = () => {
-  prepareKeypress();
   prepareMouseClick();
 
   // If you're adding an event for a button click, do something similar.
@@ -33,8 +36,7 @@ const globalClassNames = {
   VERBOSELOG: "verbose-log",
 };
 
-let loadedCSV: CSV | null;
-let commandInput: HTMLInputElement;
+let loadedCSV: CSV;
 let history: Array<Result<any>> = [];
 
 const defaultCommandMap: { [commandName: string]: Command<any> } = {
@@ -49,34 +51,12 @@ function getIsModeVerbose(): boolean {
   return isModeVerbose;
 }
 
-function toggleVerbosity(): void {
-  isModeVerbose = isModeVerbose;
-  isModeVerbose = !isModeVerbose;
+function setVerbosity(newIsModeVerbose: boolean): void {
+  isModeVerbose = newIsModeVerbose;
 }
 
 function setLoadedCSV(csvToLoad: CSV) {
   loadedCSV = csvToLoad;
-}
-
-function prepareKeypress() {
-  // As far as TypeScript knows, there may be *many* elements with this class.
-  const maybeInputs: HTMLCollectionOf<Element> =
-    document.getElementsByClassName("repl-command-box");
-  // Assumption: there's only one thing
-  const maybeInput: Element | null = maybeInputs.item(0);
-  // Is the thing there? Is it of the expected type?
-  //  (Remember that the HTML author is free to assign the repl-input class to anything :-) )
-  if (maybeInput == null) {
-    console.log("Couldn't find input element");
-  } else if (!(maybeInput instanceof HTMLInputElement)) {
-    console.log(`Found element ${maybeInput}, but it wasn't an input`);
-  } else {
-    // Notice that we're passing *THE FUNCTION* as a value, not calling it.
-    // The browser will invoke the function when a key is pressed with the input in focus.
-    //  (This should remind you of the strategy pattern things we've done in Java.)
-    commandInput = maybeInput;
-    commandInput.addEventListener("keypress", handleKeypress);
-  }
 }
 
 function prepareMouseClick() {
@@ -91,10 +71,7 @@ function prepareMouseClick() {
     // Notice that we're passing *THE FUNCTION* as a value, not calling it.
     // The browser will invoke the function when a key is pressed with the input in focus.
     //  (This should remind you of the strategy pattern things we've done in Java.)
-    maybeInput.addEventListener("click", () =>
-      updateHistoryAndRender(defaultCommandMap)
-    );
-    console.log("Found element");
+    maybeInput.addEventListener("click", () => updateHistoryAndRender(defaultCommandMap));
   }
 }
 
@@ -117,17 +94,34 @@ function handleKeypress(event: KeyboardEvent) {
   );
 }
 
-function updateCommandHistoryState(
-  commandMap: { [commandName: string]: Command<any> },
-  inputStr: string
-) {
-  const regex: RegExp = /[^\s]+|"(.*?)"/g;
+function parseArgs(inputStr: string): Array<string> {
+  const regex: RegExp = /(?:[^\s"]+|"[^"]*")+/g;
+
   const regexMatches: RegExpMatchArray | null = inputStr.match(regex);
   const args: Array<string> =
     regexMatches != null
-      ? regexMatches.filter((n) => n != null || n === " ")
+      ? stripWrapQuotes(regexMatches.filter((n) => n != null || n === " "))
       : [];
+  return args
+}
 
+function stripWrapQuotes(rawArgs: Array<string>) {
+  return rawArgs.map((arg) => {
+    const endIndex: number = arg.length - 1;
+
+    const hasWrapQuotes: boolean = (
+      (arg[0] === '"' && arg[endIndex] === '"')
+    )
+
+    return hasWrapQuotes ? arg.substring(1, endIndex) : arg
+  })
+}
+
+function pushHistoryElt(
+  commandMap: { [commandName: string]: Command<any> }, 
+  inputStr: string) {
+
+  const args = parseArgs(inputStr)
   if (args.length === 0) {
     history.push({
       command: inputStr,
@@ -143,16 +137,34 @@ function updateCommandHistoryState(
       command: inputStr,
       output: `command ${args[0]} not found`,
       outputCreator: new ParagraphEltCreator(),
-      isResultVerbose: isModeVerbose,
-    });
+      isResultVerbose: isModeVerbose
+    })
   }
 }
 
-function updateHistoryAndRender(commandMap: {
-  [commandName: string]: Command<any>;
-}) {
-  updateCommandHistoryState(commandMap, commandInput.value);
-  commandInput.value = "";
+function updateCommandHistoryState(commandMap: { [commandName: string]: Command<any> }) {
+  const maybeInputs: HTMLCollectionOf<Element> =
+  document.getElementsByClassName("repl-command-box");
+  // Assumption: there's only one thing
+  const maybeInput: Element | null = maybeInputs.item(0);
+  // Is the thing there? Is it of the expected type?
+  //  (Remember that the HTML author is free to assign the repl-input class to anything :-) )
+  if (maybeInput == null) {
+    console.log("Couldn't find input element");
+  } else if (!(maybeInput instanceof HTMLInputElement)) {
+    console.log(`Found element ${maybeInput}, but it wasn't an input`);
+  } else {
+    // Notice that we're passing *THE FUNCTION* as a value, not calling it.
+    // The browser will invoke the function when a key is pressed with the input in focus.
+    //  (This should remind you of the strategy pattern things we've done in Java.)
+    const commandInput = maybeInput;
+    pushHistoryElt(commandMap, commandInput.value)
+    commandInput.value = "";
+  }
+}
+
+function updateHistoryAndRender(commandMap: { [commandName: string]: Command<any> }) {
+  updateCommandHistoryState(commandMap)
   console.log(`history: ${JSON.stringify(history)}`);
   renderCommandHistory();
 }
@@ -224,18 +236,19 @@ export {
   handleKeypress,
   resetMode,
   getIsModeVerbose,
-  prepareKeypress,
   getPressCount,
   loadedCSV,
   mockLoadMap,
-  toggleVerbosity,
+  setVerbosity,
   setLoadedCSV,
   clearHistory,
   getHistory,
-  globalClassNames,
+  pushHistoryElt,
   updateCommandHistoryState,
   renderCommandHistory,
   defaultCommandMap,
   updateHistoryAndRender,
+  globalClassNames,
+  parseArgs
   resetLoadedCSV,
 };

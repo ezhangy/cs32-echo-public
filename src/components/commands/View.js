@@ -1,6 +1,6 @@
 import { loadedCSV, getIsModeVerbose } from "../../main.js";
 import { TableCreator } from "../csv/CSVCreators.js";
-import { ParagraphEltCreator } from "../utilityCreators/ParagraphEltCreator.js";
+import { ParagraphEltCreator } from "../creators/ParagraphEltCreator.js";
 export class View {
     viewHelper() {
         if (loadedCSV == undefined || loadedCSV == null) {

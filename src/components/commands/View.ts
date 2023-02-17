@@ -1,8 +1,8 @@
 import { loadedCSV, getIsModeVerbose } from "../../main.js";
-import { Result } from "../../ResultCreator.js";
+import { Result } from "../creators/ResultCreator";
 import { CSV } from "../csv/CSV.types";
 import { TableCreator } from "../csv/CSVCreators.js";
-import { ParagraphEltCreator } from "../utilityCreators/ParagraphEltCreator.js";
+import { ParagraphEltCreator } from "../creators/ParagraphEltCreator.js";
 import { Command } from "./Command.types";
 
 export class View implements Command<string | CSV> {

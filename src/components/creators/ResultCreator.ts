@@ -1,6 +1,6 @@
-import { HTMLConverter } from "./components/HTMLConverter.js";
-import { HTMLCreator } from "./components/HTMLCreator.types";
-import { globalClassNames } from "./main.js";
+import { HTMLConverter } from "../HTMLConverter.js";
+import { HTMLCreator } from "./HTMLCreator.types.js";
+import { globalClassNames } from "../../main.js";
 
 export interface Result<T> {
   command: string;
@@ -17,7 +17,7 @@ export class ResultCreator implements HTMLCreator<Result<any>> {
                                 .innerHTML;   
     return isResultVerbose
       ? `<p class="${globalClassNames.COMMANDTEXT}">
-          <span class="${globalClassNames.COMMANDTEXTLABEL}">Command:</span> ${command}
+          Command: ${command}
         </p>
         <div class="${globalClassNames.COMMANDOUTPUT}">
           <span class="${globalClassNames.COMMANDOUTPUTLABEL}">Output:</span>${outputHTML}

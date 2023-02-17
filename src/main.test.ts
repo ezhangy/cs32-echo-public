@@ -7,13 +7,14 @@ import { screen, within } from "@testing-library/dom";
 import userEvent from "@testing-library/user-event";
 import { Command, View } from "./components/commands/allcommands.js";
 import { Mode } from "./components/commands/Mode";
-import { Result, ResultCreator } from "./ResultCreator";
-import { ParagraphEltCreator } from "./components/utilityCreators/ParagraphEltCreator";
+import { ParagraphEltCreator } from "./components/creators/ParagraphEltCreator";
 import { HTMLConverter } from "./components/HTMLConverter";
-import { HTMLCreator } from "./components/HTMLCreator.types";
 import { Load } from "./components/commands/Load";
 import { Search } from "./components/commands/Search";
-import { CSV } from "./components/csv/CSV.types";
+import { CSV, CSVRow } from "./components/csv/CSV.types";
+import { Result } from "./components/creators/ResultCreator";
+import { HTMLCreator } from "./components/creators/HTMLCreator.types";
+import { CSVRowCreator, TableCreator } from "./components/csv/CSVCreators";
 
 // Template HTML for test running
 const startHTML: string = `
@@ -47,6 +48,7 @@ class MockCommand implements Command<string> {
 let mockArgs: Array<string>;
 let mockCommandText: string;
 let mockCommandOutput: string;
+
 let mockCreator: HTMLCreator<string>;
 let mockResult: Result<string>;
 
@@ -62,24 +64,39 @@ beforeEach(function () {
   submitButton = screen.getByText("Submit");
   commandInput = screen.getByPlaceholderText("Input text here.");
 
+  mockCommandMap = {
+    mock: new MockCommand()
+  }
   mockCommandText = "mock arg0 arg1 arg2";
   mockArgs = ["mock", "arg0", "arg1", "arg2"];
-  mockCommandOutput =
-    "args passed into the mock command: mock, arg0, arg1, arg2";
-  mockCreator = new MockCreator();
-});
+  mockCommandOutput = "args passed into the mock command: mock, arg0, arg1, arg2"
 
-//DOM tests
 
-// mode tests, state management
+// STATE MANAGEMENT TESTS
+// history state
+test("running command updates history state", () => {
+  expect(main.getHistory().length).toBe(0)
+  main.pushHistoryElt(mockCommandMap, "mock 1")
+  main.pushHistoryElt(mockCommandMap, "mock 2")
+  main.pushHistoryElt(mockCommandMap, "mock 3")
+  
+  const history = main.getHistory()
+
+  expect(history[0].output).toBe("args passed into the mock command: mock, 1")
+  expect(history[1].output).toBe("args passed into the mock command: mock, 2")
+  expect(history[2].output).toBe("args passed into the mock command: mock, 3")
+})
+
+
+// mode history
 test("application starts in brief mode", () => {
   expect(main.getIsModeVerbose()).toBe(false);
 });
 
-test("toggleVerbosity changes mode state", () => {
-  main.toggleVerbosity();
+test("setVerbosity changes mode state", () => {
+  main.setVerbosity(true);
   expect(main.getIsModeVerbose()).toBe(true);
-  main.toggleVerbosity();
+  main.setVerbosity(false);
   expect(main.getIsModeVerbose()).toBe(false);
 });
 
@@ -91,34 +108,62 @@ test("modeCommand changes mode state", () => {
   expect(main.getIsModeVerbose()).toBe(false);
 });
 
-test("Command object creates the appropriate Result object", () => {
-  const mockResult: Result<string> = {
-    command: mockCommandText,
-    outputCreator: new MockCreator(),
-    output: mockCommandOutput,
-    isResultVerbose: main.getIsModeVerbose(),
-  };
 
-  const result: Result<string> = new MockCommand().run(
-    mockArgs,
-    mockCommandText
-  );
-
-  expect(result.command).toBe(mockResult.command);
-  expect(result.output).toBe(mockResult.output);
-  expect(result.outputCreator instanceof MockCreator).toBe(true);
-  expect(result.isResultVerbose).toBe(mockResult.isResultVerbose);
-});
-
-test("running mock command creates the approriate HTML in the DOM", () => {
-  const mockCommandMap = {
-    mock: new MockCommand(),
-  };
-  main.updateCommandHistoryState(mockCommandMap, mockCommandText);
+// DOM tests
+test("(brief) running mock command creates the approriate HTML in the DOM", () => {
+  main.pushHistoryElt(mockCommandMap, mockCommandText);
+  main.pushHistoryElt(mockCommandMap, mockCommandText);
   main.renderCommandHistory();
 
-  expect(screen.getByText(mockCommandOutput)).toBeTruthy();
-});
+  // check for output
+  expect(screen.getAllByText(mockCommandOutput).length).toBe(2)
+
+  // there should not be a match for "Command:"
+  expect(screen.queryByText(/Command:\s?/)).toBe(null)
+  // there should not be a match for "Output:"
+  expect(screen.queryByText(/Output:\s?/)).toBe(null)
+})
+
+test("(verbose) running mock command creates the appropriate HTML in the DOM", () => {
+  // set to verbose mode
+  main.setVerbosity(true)
+  main.pushHistoryElt(mockCommandMap, mockCommandText);
+  main.pushHistoryElt(mockCommandMap, mockCommandText);
+  main.renderCommandHistory();
+
+  const commandTextRegex: RegExp = new RegExp(/Command:\s?/.source + mockCommandText)
+  // check for Command: <command text>
+  expect(screen.getAllByText(commandTextRegex).length).toBe(2)
+
+  // check for Output: <output>
+  expect(screen.getAllByText(/Output:\s?/).length).toBe(2)
+  expect(screen.getAllByText(mockCommandOutput).length).toBe(2)
+})
+
+test("switching verbosity does not affect how previous command logs", () => {
+  // should be brief
+  main.pushHistoryElt(mockCommandMap, mockCommandText);
+
+  // should be verbose
+  main.setVerbosity(true)
+  main.pushHistoryElt(mockCommandMap, mockCommandText);
+  main.renderCommandHistory();
+
+  // there should be exactly two logs with the output text
+  expect(screen.getAllByText(mockCommandOutput).length).toBe(2)
+  
+  // there should be exactly one log that matches verbose format
+  const commandTextRegex: RegExp = new RegExp(/Command:\s?/.source + mockCommandText)
+  expect(screen.getByText(commandTextRegex))
+  expect(screen.getByText(/Output:\s?/))
+  
+  // this should still be the case if verbosity is toggled back to brief
+  main.setVerbosity(false)
+  main.renderCommandHistory();
+  expect(screen.getAllByText(mockCommandOutput).length).toBe(2)
+  expect(screen.getByText(commandTextRegex))
+  expect(screen.getByText(/Output:\s?/))
+})
 
 test("modeCommand returns correct Result", () => {
   const toVerboseResult: Result<string> = new Mode().run(["mode"], "mode");
@@ -132,49 +177,57 @@ test("modeCommand returns correct Result", () => {
   expect(toBriefResult.isResultVerbose).toBe(false);
 });
 
-// ResultCreator tests
-test("(verbose mode) ResultCreator creates the appropriate DOM element", () => {
-  const testResult: Result<string> = {
-    command: "test command text",
-    outputCreator: new ParagraphEltCreator(),
-    output: "test output",
-    isResultVerbose: true,
-  };
-
-  const resultConverter: HTMLConverter<Result<string>> = new HTMLConverter(
-    testResult,
-    new ResultCreator()
-  );
-
-  const resultChildren: HTMLCollectionOf<Element> =
-    resultConverter.toHTMLTemplate().content.children;
-
-  console.log(resultConverter.toHTMLTemplate().innerHTML);
-
-  expect(resultChildren.length).toBe(2);
-  const commandTextParagraph = resultChildren[0];
-  expect(commandTextParagraph instanceof HTMLParagraphElement).toBe(true);
-  expect(commandTextParagraph.className).toBe(
-    main.globalClassNames.COMMANDTEXT
-  );
-
-  const commandDivParagraph = resultChildren[1];
-  expect(commandDivParagraph instanceof HTMLDivElement).toBe(true);
-  expect(commandDivParagraph.className).toBe(
-    main.globalClassNames.COMMANDOUTPUT
-  );
+// USER EVENT TESTS
+test("clicking submit button clears command input", () => {
+  submitButton.addEventListener("click", () => main.updateHistoryAndRender(mockCommandMap))
+  userEvent.type(commandInput, "test")
+  userEvent.click(submitButton)
+  expect(commandInput.value).toBe("")
 });
 
-// //when a user submits an empty string, the correct output is present
-// test("testing empty input", function () {
-//   // userEvent.click(submitButton);
-//   // expect(
-//   //   screen.getByTitle("Command Output").innerHTML == "submitted empty string"
-//   // );
-// });
+test("submitting invalid command outputs error message", function () {
+  submitButton.addEventListener("click", () => main.updateHistoryAndRender(mockCommandMap))
+  userEvent.type(commandInput, "test")
+  
+  expect(commandInput.value).toBe("test")
+  userEvent.click(submitButton)
+  expect(screen.getByText("command test not found"))
+});
 
-// //when a user submits a nonexistent command, the correct output is present
-// test("testing empty input", function () {});
+test("submitting empty input outputs error message", function () {
+  submitButton.addEventListener("click", () => main.updateHistoryAndRender(mockCommandMap))
+  expect(commandInput.value).toBe("")
+  userEvent.click(submitButton)
+
+  expect(screen.getByText("submitted empty string"))
+});
+
+test("submitting mock command generates correct output", () => {
+  submitButton.addEventListener("click", () => main.updateHistoryAndRender(mockCommandMap))
+  
+  userEvent.type(commandInput, mockCommandText)
+  expect(commandInput.value).toBe(mockCommandText)
+  userEvent.click(submitButton)
+
+  userEvent.type(commandInput, mockCommandText)
+  userEvent.click(submitButton)
+
+  expect(screen.getAllByText(mockCommandOutput).length).toBe(2)
+})
+
+test("args wrapped in quotes produce correct command output", () => {
+  submitButton.addEventListener("click", () => main.updateHistoryAndRender(mockCommandMap))
+  
+  userEvent.type(commandInput, '"mock" "arg0" "arg1" "arg2"')
+  userEvent.click(submitButton)
+  expect(screen.getAllByText(mockCommandOutput).length).toBe(1)
+
+  userEvent.type(commandInput, '"mock" "arg1 arg1" "arg2"')
+  userEvent.click(submitButton)
+  expect(
+    screen.getAllByText("args passed into the mock command: mock, arg1 arg1, arg2").length)
+    .toBe(1)
+})
 
 //testing load_file command (switching datasets)
 test("loadedCSV is updated, output is present", function () {
@@ -413,9 +466,29 @@ test("creates text element when no search term exists", () => {
 
 //Other tests
 
-test("handleKeypress counting", () => {
-  main.handleKeypress(new KeyboardEvent("keypress", { key: "x" }));
-  expect(main.getPressCount()).toBe(1);
-  main.handleKeypress(new KeyboardEvent("keypress", { key: "y" }));
-  expect(main.getPressCount()).toBe(2);
+
+test("Command object creates the appropriate Result object", () => {
+  const mockResult: Result<string> = {
+    command: mockCommandText,
+    outputCreator: new MockCreator(),
+    output: mockCommandOutput,
+    isResultVerbose: main.getIsModeVerbose()
+  }
+
+  const result: Result<string> = 
+    new MockCommand().run(mockArgs, mockCommandText)
+
+  expect(result.command).toBe(mockResult.command)
+  expect(result.output).toBe(mockResult.output)
+  expect(result.outputCreator instanceof MockCreator).toBe(true)
+  expect(result.isResultVerbose).toBe(mockResult.isResultVerbose)
 });
+
+test("string correctly converted into args array", () => {
+  console.log(main.parseArgs(mockCommandText))
+  expect(main.parseArgs(mockCommandText)).toStrictEqual(mockArgs);
+  expect(main.parseArgs(`"'arg1'"`)).toStrictEqual(["'arg1'"]);
+  expect(main.parseArgs(`"arg1 arg1"`)).toStrictEqual(["arg1 arg1"]);
+  expect(main.parseArgs(`"arg1 arg1" arg2`)).toStrictEqual(["arg1 arg1", "arg2"]);
+}
+)

@@ -1,8 +1,8 @@
-import { toggleVerbosity, getIsModeVerbose } from "../../main.js";
-import { ParagraphEltCreator } from "../utilityCreators/ParagraphEltCreator.js";
+import { setVerbosity, getIsModeVerbose } from "../../main.js";
+import { ParagraphEltCreator } from "../creators/ParagraphEltCreator.js";
 export class Mode {
     run(args, commandText) {
-        toggleVerbosity();
+        setVerbosity(!getIsModeVerbose());
         let output = `mode changed to ${getIsModeVerbose() ? "verbose" : "brief"}`;
         return {
             command: commandText,

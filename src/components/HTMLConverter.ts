@@ -1,4 +1,4 @@
-import { HTMLCreator } from "./HTMLCreator.types";
+import { HTMLCreator } from "./creators/HTMLCreator.types.js";
 
 export class HTMLConverter<T> {
   readonly codeObj: T;
