@@ -15,6 +15,16 @@ window.onload = () => {
   // should be HTMLButtonElement. The handler function for a "click" takes no arguments.
 };
 
+// global class names
+const globalClassNames = {
+  COMMANDLOG: "command-log",
+  ARROWSPAN: "console-arrow",
+  COMMANDOUTPUT: "command-output",
+  COMMANDTEXT: "command-text",
+  BRIEFLOG: "brief-log",
+  VERBOSELOG: "verbose-log"
+}
+
 let loadedCSV: CSV;
 let commandInput: HTMLInputElement;
 let history: Array<Result<any>> = [];
@@ -136,8 +146,7 @@ function makeResultDiv(result: Result<any>, className: string): DocumentFragment
   resultTemplate.innerHTML = `
     <div ${className} />
       <span>></span> ${resultHTML}
-    <div />
-  `;
+    <div />`;
 
   return resultTemplate.content;
 }
@@ -187,4 +196,5 @@ export {
   toggleVerbosity,
   setLoadedCSV,
   clearHistory,
+  globalClassNames
 };
