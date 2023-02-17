@@ -1,6 +1,6 @@
 import { mockLoadMap } from "./mockedJson.js";
 import { CSV } from "./components/csv/CSV.types.js";
-import { commandMap, Command } from "./components/commands/allcommands.js";
+import { Command, Load, Mode, Search, View } from "./components/commands/allcommands.js";
 import { HTMLConverter } from "./components/HTMLConverter.js";
 import { Result, ResultCreator } from "./ResultCreator.js";
 import { ParagraphEltCreator } from "./components/utilityCreators/ParagraphEltCreator.js";
@@ -30,6 +30,15 @@ const globalClassNames = {
 let loadedCSV: CSV;
 let commandInput: HTMLInputElement;
 let history: Array<Result<any>> = [];
+
+
+const defaultCommandMap:  { [commandName: string]: Command<any> } = {
+    mode: new Mode(),
+    load_file: new Load(),
+    view: new View(),
+    search: new Search(),
+  };
+
 
 let isModeVerbose: boolean = false;
 function getIsModeVerbose(): boolean {
@@ -78,7 +87,7 @@ function prepareMouseClick() {
     // Notice that we're passing *THE FUNCTION* as a value, not calling it.
     // The browser will invoke the function when a key is pressed with the input in focus.
     //  (This should remind you of the strategy pattern things we've done in Java.)
-    maybeInput.addEventListener("click", updateHistoryAndRender);
+    maybeInput.addEventListener("click", () => updateHistoryAndRender(defaultCommandMap));
     console.log("Found element");
   }
 }
@@ -102,9 +111,7 @@ function handleKeypress(event: KeyboardEvent) {
   );
 }
 
-function updateCommandHistoryState() {
-  const inputStr: string = commandInput.value;
-
+function updateCommandHistoryState(commandMap: { [commandName: string]: Command<any> }, inputStr: string) {
   const regex: RegExp = /[^\s]+|"(.*?)"/g;
   const regexMatches: RegExpMatchArray | null = inputStr.match(regex);
   const args: Array<string> =
@@ -112,8 +119,6 @@ function updateCommandHistoryState() {
       ? regexMatches.filter((n) => n != null || n === " ")
       : [];
 
-  console.log(`args: ${JSON.stringify(args)}`);
-  console.log(`view in commandMap ${"view" in commandMap}`);
   if (args.length === 0) {
     history.push({ 
       command: inputStr,
@@ -134,8 +139,8 @@ function updateCommandHistoryState() {
   }
 }
 
-function updateHistoryAndRender() {
-  updateCommandHistoryState();
+function updateHistoryAndRender(commandMap: { [commandName: string]: Command<any> }) {
+  updateCommandHistoryState(commandMap, commandInput.value);
   commandInput.value = "";
   console.log(`history: ${JSON.stringify(history)}`);
   renderCommandHistory();
@@ -194,19 +199,27 @@ function getHistory() {
   return history.slice();
 }
 
+function resetMode() {
+  isModeVerbose = false;
+}
+
 // Provide this to other modules (e.g., for testing!)
 // The configuration in this project will require /something/ to be exported.
 export {
   handleKeypress,
+  resetMode,
   getIsModeVerbose,
   prepareKeypress,
   getPressCount,
-  isModeVerbose,
   loadedCSV,
   mockLoadMap,
   toggleVerbosity,
   setLoadedCSV,
   clearHistory,
   getHistory,
-  globalClassNames
+  globalClassNames,
+  updateCommandHistoryState,
+  renderCommandHistory,
+  defaultCommandMap,
+  updateHistoryAndRender,
 };

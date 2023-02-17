@@ -1,4 +1,4 @@
-import { loadedCSV, isModeVerbose } from "../../main.js";
+import { loadedCSV, getIsModeVerbose } from "../../main.js";
 import { Result } from "../../ResultCreator.js";
 import { CSV } from "../csv/CSV.types";
 import { TableCreator } from "../csv/CSVCreators.js";
@@ -33,7 +33,7 @@ export class View implements Command<string | CSV> {
         ? new ParagraphEltCreator()
         : new TableCreator(),
       output: toReturn,
-      isResultVerbose: isModeVerbose
+      isResultVerbose: getIsModeVerbose()
     };
   }
 }

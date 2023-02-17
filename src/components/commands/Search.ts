@@ -1,4 +1,4 @@
-import { isModeVerbose, loadedCSV, mockLoadMap } from "../../main.js";
+import { getIsModeVerbose, loadedCSV, mockLoadMap } from "../../main.js";
 import { numberCSVSearchMap, stringCSVSearchMap } from "../../mockedJson.js";
 import { Result } from "../../ResultCreator.js";
 import { CSV } from "../csv/CSV.types.js";
@@ -49,7 +49,7 @@ export class Search implements Command<string | CSV> {
           ? new ParagraphEltCreator()
           : new TableCreator(),
       output: toReturn,
-      isResultVerbose: isModeVerbose,
+      isResultVerbose: getIsModeVerbose()
     };
   }
 }
