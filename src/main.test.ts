@@ -2,7 +2,7 @@
 import * as main from "./main";
 
 // Lets us use DTL's query library
-import { screen } from "@testing-library/dom";
+import { screen, within } from "@testing-library/dom";
 // Lets us send user events (like typing and clicking)
 import userEvent from "@testing-library/user-event";
 import { Command, View } from "./components/commands/allcommands.js";
@@ -269,7 +269,9 @@ test("running view command creates balanced/valid html table", () => {
   main.updateCommandHistoryState(main.defaultCommandMap, "view");
   main.renderCommandHistory();
 
-  expect(screen.getByText("tim")).toBeTruthy();
+  const table = document.getElementsByTagName("table");
+  expect(table.length).toBe(1);
+  expect(within(table[0]).getByText("tim")).toBeTruthy();
 });
 
 //testing search command
@@ -324,7 +326,9 @@ test("running search command creates correct html table", () => {
   main.updateCommandHistoryState(main.defaultCommandMap, "search 0 tim");
   main.renderCommandHistory();
 
-  expect(screen.getByText("tim")).toBeTruthy();
+  const table = document.getElementsByTagName("table");
+  expect(table.length).toBe(1);
+  expect(within(table[0]).getByText("tim")).toBeTruthy();
 });
 
 // test("repl-input exists", () => {
