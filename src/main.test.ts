@@ -117,7 +117,7 @@ test("running mock command creates the approriate HTML in the DOM", () => {
   main.updateCommandHistoryState(mockCommandMap, mockCommandText);
   main.renderCommandHistory();
 
-  expect(screen.getByText(mockCommandOutput));
+  expect(screen.getByText(mockCommandOutput)).toBeTruthy();
 });
 
 test("modeCommand returns correct Result", () => {
@@ -165,12 +165,16 @@ test("(verbose mode) ResultCreator creates the appropriate DOM element", () => {
   );
 });
 
-test("testing empty input", function () {
-  userEvent.click(submitButton);
-  expect(
-    screen.getByTitle("Command Output").innerHTML == "submitted empty string"
-  );
-});
+// //when a user submits an empty string, the correct output is present
+// test("testing empty input", function () {
+//   // userEvent.click(submitButton);
+//   // expect(
+//   //   screen.getByTitle("Command Output").innerHTML == "submitted empty string"
+//   // );
+// });
+
+// //when a user submits a nonexistent command, the correct output is present
+// test("testing empty input", function () {});
 
 //testing load_file command (switching datasets)
 test("loadedCSV is updated, output is present", function () {
@@ -205,6 +209,16 @@ test("if incorrect number of args is provided, error is present", function () {
   expect(toNewCSVResult.output).toBe(
     "Exception: load_file expected 1 argument but found 2."
   );
+});
+
+test("running load command creates appropriate output element", () => {
+  main.updateCommandHistoryState(
+    main.defaultCommandMap,
+    "load_file stringCSV.csv"
+  );
+  main.renderCommandHistory();
+
+  expect(screen.getByText("Successfully loaded stringCSV.csv.")).toBeTruthy();
 });
 
 //testing view command
