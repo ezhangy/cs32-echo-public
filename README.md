@@ -21,10 +21,6 @@ TODO: EXPLAIN
 
 TODO: EXPLAIN
 
-### Runtime/space optimizations you made (if applicable)
-
-TODO: EXPLAIN
-
 ## **Errors/Bugs**
 
 We are not aware of any errors/bugs in our project.
