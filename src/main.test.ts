@@ -38,8 +38,10 @@ test("testing empty input", function () {
 
 //Other tests
 
-test("is 1 + 1 = 2?", () => {
-  expect(1 + 1).toBe(2);
+test("display mode switches upon mode command", () => {
+  const oldIsModeVerbose = main.isModeVerbose;
+  main.toggleVerbosity();
+  expect(main.isModeVerbose).toBe(!oldIsModeVerbose);
 });
 
 // Notice: we're testing the keypress handler's effect on state and /nothing else/
