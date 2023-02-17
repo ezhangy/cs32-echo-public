@@ -107,7 +107,8 @@ test("testing empty input", function () {
   );
 });
 
-test("testing switching datasets", function () {
+//testing load_file command (switching datasets)
+test("loadedCSV is updated, output is present", function () {
   const toNewCSVResult: Result<string> = new Load().run(
     ["load", "stringCSV.csv"],
     "load"
@@ -119,6 +120,26 @@ test("testing switching datasets", function () {
     ["john", "doe", "student"],
     ["jane", "doe", "student"],
   ]);
+});
+
+test("if filepath is invalid, error is present", function () {
+  const toNewCSVResult: Result<string> = new Load().run(
+    ["load", "test.csv"],
+    "load"
+  );
+  expect(toNewCSVResult.command).toBe("load");
+  expect(toNewCSVResult.output).toBe("Could not find test.csv.");
+});
+
+test("if incorrect number of args is provided, error is present", function () {
+  const toNewCSVResult: Result<string> = new Load().run(
+    ["load", "stringCSV.csv", "test"],
+    "load"
+  );
+  expect(toNewCSVResult.command).toBe("load");
+  expect(toNewCSVResult.output).toBe(
+    "Exception: load_file expected 1 argument but found 2."
+  );
 });
 
 // test("repl-input exists", () => {
