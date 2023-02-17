@@ -161,7 +161,6 @@ function updateCommandHistoryState(commandMap: { [commandName: string]: Command<
 
 function updateHistoryAndRender(commandMap: { [commandName: string]: Command<any> }) {
   updateCommandHistoryState(commandMap)
-  console.log(`history: ${JSON.stringify(history)}`);
   renderCommandHistory();
 }
 
