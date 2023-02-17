@@ -316,6 +316,17 @@ test("correct output text  when invalid args are provided", function () {
   );
 });
 
+test("running search command creates correct html table", () => {
+  main.updateCommandHistoryState(
+    main.defaultCommandMap,
+    "load_file stringCSV.csv"
+  );
+  main.updateCommandHistoryState(main.defaultCommandMap, "search 0 tim");
+  main.renderCommandHistory();
+
+  expect(screen.getByText("tim")).toBeTruthy();
+});
+
 // test("repl-input exists", () => {
 //   let repl_input: HTMLCollectionOf<Element> =
 //     document.getElementsByClassName("repl-input");
