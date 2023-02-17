@@ -10,7 +10,7 @@ export class View {
             return loadedCSV;
         }
     }
-    run(args) {
+    run(args, commandText) {
         let toReturn;
         if (args.length == 1) {
             if (this.viewHelper() != null) {
@@ -24,12 +24,12 @@ export class View {
             toReturn = `Exception: view expected 0 arguments but found ${args.length - 1}.`;
         }
         return {
-            command: "view",
+            command: commandText,
             outputCreator: typeof toReturn === "string"
                 ? new ParagraphEltCreator()
                 : new TableCreator(),
             output: toReturn,
-            inVerboseMode: isModeVerbose,
+            isResultVerbose: isModeVerbose
         };
     }
 }

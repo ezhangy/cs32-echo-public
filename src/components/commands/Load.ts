@@ -1,13 +1,12 @@
 import { isModeVerbose, setLoadedCSV } from "../../main.js";
 import { mockLoadMap } from "../../mockedJson.js";
-import { CSV } from "../csv/CSV.types";
-import { CommandLog, CommandOutputType } from "../log/Log.types";
+import { Result } from "../../ResultCreator.js";
 import { ParagraphEltCreator } from "../utilityCreators/ParagraphEltCreator.js";
 import { Command } from "./Command.types";
 
 
 
-export class Load implements Command {
+export class Load implements Command<string> {
   public loadHelper(filePath: string): boolean {
     if (filePath in mockLoadMap) {
       setLoadedCSV(mockLoadMap[filePath])
@@ -17,7 +16,7 @@ export class Load implements Command {
     }
   }
   
-  run(args: Array<string>): CommandLog<CommandOutputType> {
+  run(args: Array<string>, commandText: string): Result<string> {
     let output = `Exception: load_file expected 1 argument but found ${
       args.length - 1
     }.`;
@@ -30,10 +29,10 @@ export class Load implements Command {
     }
   
     return {
-      command: "load_file",
+      command: commandText,
       outputCreator: new ParagraphEltCreator(),
       output: output,
-      inVerboseMode: isModeVerbose,
+      isResultVerbose: isModeVerbose
     };
   }
 }

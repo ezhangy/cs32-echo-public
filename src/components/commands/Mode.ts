@@ -1,19 +1,19 @@
 import { toggleVerbosity, isModeVerbose } from "../../main.js";
-import { CommandLog, CommandOutputType } from "../log/Log.types";
+import { Result } from "../../ResultCreator.js";
 import { ParagraphEltCreator } from "../utilityCreators/ParagraphEltCreator.js";
 import { Command } from "./Command.types";
 
 
-export class Mode implements Command {
-  run(args: string[]): CommandLog<CommandOutputType> {
+export class Mode implements Command<string> {
+  run(args: Array<string>, commandText: string): Result<string> {
     toggleVerbosity();
     let output = `mode changed to ${isModeVerbose ? "verbose" : "brief"}`;
-    const log: CommandLog<string> = {
-    command: "mode",
+    
+    return  {
+    command: commandText,
     outputCreator: new ParagraphEltCreator(),
     output: output,
-    inVerboseMode: isModeVerbose,
+    isResultVerbose: isModeVerbose
   };
-  return log;
   }
 }

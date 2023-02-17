@@ -4,7 +4,7 @@ import { Mode } from "./Mode.js";
 import { Search } from "./Search.js";
 import { View } from "./View.js";
 
-const commandMap: { [commandName: string]: Command } = {
+const commandMap: { [commandName: string]: Command<any> } = {
   mode: new Mode(),
   load_file: new Load(),
   view: new View(),

@@ -11,7 +11,7 @@ export class Load {
             return false;
         }
     }
-    run(args) {
+    run(args, commandText) {
         let output = `Exception: load_file expected 1 argument but found ${args.length - 1}.`;
         if (args.length == 2) {
             if (this.loadHelper(args[1])) {
@@ -22,10 +22,10 @@ export class Load {
             }
         }
         return {
-            command: "load_file",
+            command: commandText,
             outputCreator: new ParagraphEltCreator(),
             output: output,
-            inVerboseMode: isModeVerbose,
+            isResultVerbose: isModeVerbose
         };
     }
 }
