@@ -29,6 +29,12 @@ beforeEach(function () {
 
 //DOM tests
 
+// mode tests, state management
+test("application starts in brief mode", () => {
+  expect(main.isModeVerbose).toBe(false)
+});
+
+
 test("testing empty input", function () {
   userEvent.click(submitButton);
   expect(

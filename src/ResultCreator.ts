@@ -1,5 +1,6 @@
 import { HTMLConverter } from "./components/HTMLConverter.js";
 import { HTMLCreator } from "./components/HTMLCreator.types";
+import { globalClassNames } from "./main.js";
 
 export interface Result<T> {
   command: string;
@@ -15,10 +16,12 @@ export class ResultCreator implements HTMLCreator<Result<any>> {
                                 .toHTMLTemplate()
                                 .innerHTML;   
     return isResultVerbose
-      ? `
-        <p>Command: ${command}</p>
-        <div class="command-output"><span>Output:</span>${outputHTML}</div>
-        `
-      : `<div class="command-output">${outputHTML}</div>`       
+      ? `<p class="${globalClassNames.COMMANDTEXT}">
+          <span class="${globalClassNames.COMMANDTEXTLABEL}">Command:</span> ${command}
+        </p>
+        <div class="${globalClassNames.COMMANDOUTPUT}">
+          <span class="${globalClassNames.COMMANDOUTPUTLABEL}">Output:</span>${outputHTML}
+        </div>`
+      : `<div class="${globalClassNames.COMMANDOUTPUT}">${outputHTML}</div>`       
   }
 }
