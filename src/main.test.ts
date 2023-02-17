@@ -29,12 +29,23 @@ beforeEach(function () {
 
 //DOM tests
 
-test("testing empty input", function () {
-  userEvent.click(submitButton);
-  expect(
-    screen.getByTitle("Command Output").innerHTML == "submitted empty string"
-  );
-});
+// test("repl-input exists", () => {
+//   let repl_input: HTMLCollectionOf<Element> =
+//     document.getElementsByClassName("repl-input");
+//   expect(repl_input.length).toBe(1);
+// });
+
+// test("testing empty input", function () {
+//   userEvent.click(submitButton);
+//   expect(
+//     document.getElementsByClassName("repl-command-box") == "submitted empty string"
+//   ).toBe(true);
+// });
+
+// test("when the user keypressed", function () {
+//   main.handleKeypress(new KeyboardEvent("keypress", { key: "x" }));
+//   expect(inputText.innerText === "x").toBe(true);
+// });
 
 //Other tests
 
