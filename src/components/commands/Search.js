@@ -5,7 +5,10 @@ import { ParagraphEltCreator } from "../utilityCreators/ParagraphEltCreator.js";
 export class Search {
     searchHelper(column, searchTerm) {
         const stringTerm = JSON.stringify([column, searchTerm]);
-        if (loadedCSV === mockLoadMap["numberCSV.csv"]) {
+        if (loadedCSV === null) {
+            return null;
+        }
+        else if (loadedCSV === mockLoadMap["numberCSV.csv"]) {
             return stringTerm in numberCSVSearchMap
                 ? numberCSVSearchMap[stringTerm]
                 : [];
@@ -45,7 +48,7 @@ export class Search {
                 ? new ParagraphEltCreator()
                 : new TableCreator(),
             output: toReturn,
-            isResultVerbose: getIsModeVerbose()
+            isResultVerbose: getIsModeVerbose(),
         };
     }
 }

@@ -5,7 +5,7 @@ import * as main from "./main";
 import { screen } from "@testing-library/dom";
 // Lets us send user events (like typing and clicking)
 import userEvent from "@testing-library/user-event";
-import { Command } from "./components/commands/allcommands.js";
+import { Command, View } from "./components/commands/allcommands.js";
 import { Mode } from "./components/commands/Mode";
 import { Result, ResultCreator } from "./ResultCreator";
 import { ParagraphEltCreator } from "./components/utilityCreators/ParagraphEltCreator";
@@ -29,44 +29,43 @@ const startHTML: string = `
 
 class MockCreator implements HTMLCreator<string> {
   makeInnerHTML(javascriptObj: string): string {
-    return `<div>${javascriptObj}</div>`
+    return `<div>${javascriptObj}</div>`;
   }
 }
 
 class MockCommand implements Command<string> {
   run(args: string[], commandText: string): Result<string> {
     return {
-      command: commandText, 
+      command: commandText,
       outputCreator: new MockCreator(),
       output: `args passed into the mock command: ${args.join(", ")}`,
-      isResultVerbose: main.getIsModeVerbose()
-    }
+      isResultVerbose: main.getIsModeVerbose(),
+    };
   }
 }
-
 
 let mockArgs: Array<string>;
 let mockCommandText: string;
 let mockCommandOutput: string;
-let mockCreator: HTMLCreator<string>
-let mockResult: Result<string>
+let mockCreator: HTMLCreator<string>;
+let mockResult: Result<string>;
 
 let submitButton: HTMLButtonElement;
 let commandInput: HTMLInputElement;
 
-
 beforeEach(function () {
   main.clearHistory();
   main.resetMode();
+  main.resetLoadedCSV();
   document.body.innerHTML = startHTML;
 
   submitButton = screen.getByText("Submit");
   commandInput = screen.getByPlaceholderText("Input text here.");
 
-
   mockCommandText = "mock arg0 arg1 arg2";
   mockArgs = ["mock", "arg0", "arg1", "arg2"];
-  mockCommandOutput = "args passed into the mock command: mock, arg0, arg1, arg2"
+  mockCommandOutput =
+    "args passed into the mock command: mock, arg0, arg1, arg2";
   mockCreator = new MockCreator();
 });
 
@@ -92,33 +91,34 @@ test("modeCommand changes mode state", () => {
   expect(main.getIsModeVerbose()).toBe(false);
 });
 
-
 test("Command object creates the appropriate Result object", () => {
   const mockResult: Result<string> = {
     command: mockCommandText,
     outputCreator: new MockCreator(),
     output: mockCommandOutput,
-    isResultVerbose: main.getIsModeVerbose()
-  }
+    isResultVerbose: main.getIsModeVerbose(),
+  };
 
-  const result: Result<string> = 
-    new MockCommand().run(mockArgs, mockCommandText)
+  const result: Result<string> = new MockCommand().run(
+    mockArgs,
+    mockCommandText
+  );
 
-  expect(result.command).toBe(mockResult.command)
-  expect(result.output).toBe(mockResult.output)
-  expect(result.outputCreator instanceof MockCreator).toBe(true)
-  expect(result.isResultVerbose).toBe(mockResult.isResultVerbose)
+  expect(result.command).toBe(mockResult.command);
+  expect(result.output).toBe(mockResult.output);
+  expect(result.outputCreator instanceof MockCreator).toBe(true);
+  expect(result.isResultVerbose).toBe(mockResult.isResultVerbose);
 });
 
 test("running mock command creates the approriate HTML in the DOM", () => {
-  const mockCommandMap = ({
-    mock: new MockCommand()
-  })
+  const mockCommandMap = {
+    mock: new MockCommand(),
+  };
   main.updateCommandHistoryState(mockCommandMap, mockCommandText);
   main.renderCommandHistory();
 
-  expect(screen.getByText(mockCommandOutput))
-})
+  expect(screen.getByText(mockCommandOutput));
+});
 
 test("modeCommand returns correct Result", () => {
   const toVerboseResult: Result<string> = new Mode().run(["mode"], "mode");
@@ -207,6 +207,27 @@ test("if incorrect number of args is provided, error is present", function () {
   );
 });
 
+//testing view command
+
+test("check correct output table", function () {
+  new Load().run(["load", "stringCSV.csv"], "load");
+  const toNewViewResult: Result<string | CSV> = new View().run(
+    ["view"],
+    "view"
+  );
+  expect(toNewViewResult.command).toBe("view");
+  expect(toNewViewResult.output).toBe(main.loadedCSV);
+});
+
+test("check output text if no CSV file is loaded", function () {
+  const toNewViewResult: Result<string | CSV> = new View().run(
+    ["view"],
+    "view"
+  );
+  expect(toNewViewResult.command).toBe("view");
+  expect(toNewViewResult.output).toBe("No CSV file loaded.");
+});
+
 //testing search command
 
 test("correct output text when CSV loaded, search term does not exist", function () {
@@ -220,7 +241,6 @@ test("correct output text when CSV loaded, search term does not exist", function
 });
 
 test("correct output text when no CSV loaded", function () {
-  /*TODO: set loadedCSV to null*/
   const toNewSearchResult: Result<string | CSV> = new Search().run(
     ["search", "1", "tim"],
     "search"
