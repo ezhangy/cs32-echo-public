@@ -17,7 +17,7 @@ export class ResultCreator implements HTMLCreator<Result<any>> {
                                 .innerHTML;   
     return isResultVerbose
       ? `<p class="${globalClassNames.COMMANDTEXT}">
-          <span class="${globalClassNames.COMMANDTEXTLABEL}">Command:</span> ${command}
+          Command: ${command}
         </p>
         <div class="${globalClassNames.COMMANDOUTPUT}">
           <span class="${globalClassNames.COMMANDOUTPUTLABEL}">Output:</span>${outputHTML}

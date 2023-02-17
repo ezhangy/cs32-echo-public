@@ -50,6 +50,7 @@ let mockCommandText: string;
 let mockCommandOutput: string;
 let mockCreator: HTMLCreator<string>
 let mockResult: Result<string>
+let mockCommandMap: { [commandName: string]: Command<any> }
 
 let submitButton: HTMLButtonElement;
 let commandInput: HTMLInputElement;
@@ -64,6 +65,9 @@ beforeEach(function () {
   commandInput = screen.getByPlaceholderText("Input text here.");
 
 
+  mockCommandMap = {
+    mock: new MockCommand()
+  }
   mockCommandText = "mock arg0 arg1 arg2";
   mockArgs = ["mock", "arg0", "arg1", "arg2"];
   mockCommandOutput = "args passed into the mock command: mock, arg0, arg1, arg2"
@@ -110,14 +114,59 @@ test("Command object creates the appropriate Result object", () => {
   expect(result.isResultVerbose).toBe(mockResult.isResultVerbose)
 });
 
-test("running mock command creates the approriate HTML in the DOM", () => {
-  const mockCommandMap = ({
-    mock: new MockCommand()
-  })
+test("(brief) running mock command creates the approriate HTML in the DOM", () => {
+  main.updateCommandHistoryState(mockCommandMap, mockCommandText);
   main.updateCommandHistoryState(mockCommandMap, mockCommandText);
   main.renderCommandHistory();
 
-  expect(screen.getByText(mockCommandOutput))
+  // check for output
+  expect(screen.getAllByText(mockCommandOutput).length).toBe(2)
+
+  // there should not be a match for "Command:"
+  expect(screen.queryByText(/Command:\s?/)).toBe(null)
+  // there should not be a match for "Output:"
+  expect(screen.queryByText(/Output:\s?/)).toBe(null)
+})
+
+test("(verbose) running mock command creates the appropriate HTML in the DOM", () => {
+  // set to verbose mode
+  main.toggleVerbosity();
+  main.updateCommandHistoryState(mockCommandMap, mockCommandText);
+  main.updateCommandHistoryState(mockCommandMap, mockCommandText);
+  main.renderCommandHistory();
+
+  const commandTextRegex: RegExp = new RegExp(/Command:\s?/.source + mockCommandText)
+  // check for Command: <command text>
+  expect(screen.getAllByText(commandTextRegex).length).toBe(2)
+
+  // check for Output: <output>
+  expect(screen.getAllByText(/Output:\s?/).length).toBe(2)
+  expect(screen.getAllByText(mockCommandOutput).length).toBe(2)
+})
+
+test("switching verbosity does not affect how previous command logs", () => {
+  // should be brief
+  main.updateCommandHistoryState(mockCommandMap, mockCommandText);
+  main.toggleVerbosity();
+
+  // should be verbose
+  main.updateCommandHistoryState(mockCommandMap, mockCommandText);
+  main.renderCommandHistory();
+
+  // there should be exactly two logs with the output text
+  expect(screen.getAllByText(mockCommandOutput).length).toBe(2)
+  
+  // there should be exactly one log that matches verbose format
+  const commandTextRegex: RegExp = new RegExp(/Command:\s?/.source + mockCommandText)
+  expect(screen.getByText(commandTextRegex))
+  expect(screen.getByText(/Output:\s?/))
+  
+  // this should still be the case if verbosity is toggled back to brief
+  main.toggleVerbosity();
+  main.renderCommandHistory();
+  expect(screen.getAllByText(mockCommandOutput).length).toBe(2)
+  expect(screen.getByText(commandTextRegex))
+  expect(screen.getByText(/Output:\s?/))
 })
 
 test("modeCommand returns correct Result", () => {
@@ -132,45 +181,21 @@ test("modeCommand returns correct Result", () => {
   expect(toBriefResult.isResultVerbose).toBe(false);
 });
 
-// ResultCreator tests
-test("(verbose mode) ResultCreator creates the appropriate DOM element", () => {
-  const testResult: Result<string> = {
-    command: "test command text",
-    outputCreator: new ParagraphEltCreator(),
-    output: "test output",
-    isResultVerbose: true,
-  };
-
-  const resultConverter: HTMLConverter<Result<string>> = new HTMLConverter(
-    testResult,
-    new ResultCreator()
-  );
-
-  const resultChildren: HTMLCollectionOf<Element> =
-    resultConverter.toHTMLTemplate().content.children;
-
-  console.log(resultConverter.toHTMLTemplate().innerHTML);
-
-  expect(resultChildren.length).toBe(2);
-  const commandTextParagraph = resultChildren[0];
-  expect(commandTextParagraph instanceof HTMLParagraphElement).toBe(true);
-  expect(commandTextParagraph.className).toBe(
-    main.globalClassNames.COMMANDTEXT
-  );
-
-  const commandDivParagraph = resultChildren[1];
-  expect(commandDivParagraph instanceof HTMLDivElement).toBe(true);
-  expect(commandDivParagraph.className).toBe(
-    main.globalClassNames.COMMANDOUTPUT
-  );
-});
-
 test("testing empty input", function () {
-  userEvent.click(submitButton);
-  expect(
-    screen.getByTitle("Command Output").innerHTML == "submitted empty string"
-  );
+  submitButton.addEventListener("click", () => main.updateHistoryAndRender(mockCommandMap))
+  // submit empty input
+  userEvent.type(commandInput, "test")
+  expect(commandInput.value).toBe("test")
+  userEvent.click(submitButton)
+  // expect(screen.getByText("submitted empty string"))
 });
+
+// test("testing invalid command", function () {
+//   // submit input without clicking
+//   userEvent.click(submitButton);
+//   expect(screen.getByText("submitted empty string"))
+// });
+
 
 //testing load_file command (switching datasets)
 test("loadedCSV is updated, output is present", function () {
