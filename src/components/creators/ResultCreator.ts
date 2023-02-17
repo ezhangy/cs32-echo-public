@@ -1,6 +1,6 @@
-import { HTMLConverter } from "./components/HTMLConverter.js";
-import { HTMLCreator } from "./components/HTMLCreator.types";
-import { globalClassNames } from "./main.js";
+import { HTMLConverter } from "../HTMLConverter.js";
+import { HTMLCreator } from "./HTMLCreator.types.js";
+import { globalClassNames } from "../../main.js";
 
 export interface Result<T> {
   command: string;

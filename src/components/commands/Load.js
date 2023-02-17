@@ -1,6 +1,6 @@
 import { getIsModeVerbose, setLoadedCSV } from "../../main.js";
 import { mockLoadMap } from "../../mockedJson.js";
-import { ParagraphEltCreator } from "../utilityCreators/ParagraphEltCreator.js";
+import { ParagraphEltCreator } from "../creators/ParagraphEltCreator.js";
 export class Load {
     loadHelper(filePath) {
         if (filePath in mockLoadMap) {

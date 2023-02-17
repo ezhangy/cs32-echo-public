@@ -1,7 +1,7 @@
 import { getIsModeVerbose, setLoadedCSV } from "../../main.js";
 import { mockLoadMap } from "../../mockedJson.js";
-import { Result } from "../../ResultCreator.js";
-import { ParagraphEltCreator } from "../utilityCreators/ParagraphEltCreator.js";
+import { Result } from "../creators/ResultCreator";
+import { ParagraphEltCreator } from "../creators/ParagraphEltCreator.js";
 import { Command } from "./Command.types";
 
 

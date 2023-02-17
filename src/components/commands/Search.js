@@ -1,7 +1,7 @@
 import { getIsModeVerbose, loadedCSV, mockLoadMap } from "../../main.js";
 import { numberCSVSearchMap, stringCSVSearchMap } from "../../mockedJson.js";
 import { TableCreator } from "../csv/CSVCreators.js";
-import { ParagraphEltCreator } from "../utilityCreators/ParagraphEltCreator.js";
+import { ParagraphEltCreator } from "../creators/ParagraphEltCreator.js";
 export class Search {
     searchHelper(column, searchTerm) {
         const stringTerm = JSON.stringify([column, searchTerm]);
