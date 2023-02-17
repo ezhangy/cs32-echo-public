@@ -338,7 +338,7 @@ test("correct output text when no CSV loaded", function () {
   expect(toNewSearchResult.output).toBe("No CSV file loaded.");
 });
 
-test("correct output text  when invalid args are provided", function () {
+test("correct output text when invalid args are provided", function () {
   const toNewSearchResult: Result<string | CSV> = new Search().run(
     ["search", "tim"],
     "search"
@@ -360,6 +360,37 @@ test("running search command creates correct html table", () => {
   const table = document.getElementsByTagName("table");
   expect(table.length).toBe(1);
   expect(within(table[0]).getByText("tim")).toBeTruthy();
+});
+
+test("creates error element when no CSV loaded", () => {
+  main.updateCommandHistoryState(main.defaultCommandMap, "search 0 tim");
+  main.renderCommandHistory();
+
+  expect(screen.getByText("No CSV file loaded.")).toBeTruthy();
+});
+
+test("creates error element when incorrect arguments", () => {
+  main.updateCommandHistoryState(
+    main.defaultCommandMap,
+    "load_file stringCSV.csv"
+  );
+  main.updateCommandHistoryState(main.defaultCommandMap, "search tim");
+  main.renderCommandHistory();
+
+  expect(
+    screen.getByText("Exception: search expected 2 arguments but found 1.")
+  ).toBeTruthy();
+});
+
+test("creates text element when no search term exists", () => {
+  main.updateCommandHistoryState(
+    main.defaultCommandMap,
+    "load_file stringCSV.csv"
+  );
+  main.updateCommandHistoryState(main.defaultCommandMap, "search 1 tim");
+  main.renderCommandHistory();
+
+  expect(screen.getByText("No search results found.")).toBeTruthy();
 });
 
 // test("repl-input exists", () => {
