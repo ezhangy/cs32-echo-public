@@ -17,17 +17,15 @@ export class View implements Command {
   }
 
   run(args: string[]): CommandLog<CommandOutputType> {
-    let toReturn:
-    | string
-    | Array<
-        Array<string | number>
-      > = `Exception: view expected 0 arguments but found ${args.length - 1}.`;
+    let toReturn: string | CSV;
     if (args.length == 1) {
       if (this.viewHelper() != null) {
         toReturn = loadedCSV;
       } else {
         toReturn = `No CSV file loaded.`;
-      }
+      } 
+    } else {
+      toReturn = `Exception: view expected 0 arguments but found ${args.length - 1}.`
     }
 
     return {
