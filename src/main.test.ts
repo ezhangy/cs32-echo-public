@@ -230,6 +230,18 @@ test("check output text if no CSV file is loaded", function () {
 
 //testing search command
 
+test("check correct output table for search result", function () {
+  new Load().run(["load", "stringCSV.csv"], "load");
+  const toNewSearchResult: Result<string | CSV> = new Search().run(
+    ["search", "0", "tim"],
+    "search"
+  );
+  expect(toNewSearchResult.command).toBe("search");
+  expect(toNewSearchResult.output).toStrictEqual([
+    ["tim", "nelson", "instructor"],
+  ]);
+});
+
 test("correct output text when CSV loaded, search term does not exist", function () {
   new Load().run(["load", "stringCSV.csv"], "load");
   const toNewSearchResult: Result<string | CSV> = new Search().run(
