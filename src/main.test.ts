@@ -221,6 +221,25 @@ test("running load command creates appropriate output element", () => {
   expect(screen.getByText("Successfully loaded stringCSV.csv.")).toBeTruthy();
 });
 
+test("running load command with invalid path creates error element", () => {
+  main.updateCommandHistoryState(main.defaultCommandMap, "load_file test.csv");
+  main.renderCommandHistory();
+
+  expect(screen.getByText("Could not find test.csv.")).toBeTruthy();
+});
+
+test("running load command with incorrect args creates error element", () => {
+  main.updateCommandHistoryState(
+    main.defaultCommandMap,
+    "load_file stringCSV.csv test"
+  );
+  main.renderCommandHistory();
+
+  expect(
+    screen.getByText("Exception: load_file expected 1 argument but found 2.")
+  ).toBeTruthy();
+});
+
 //testing view command
 
 test("check correct output table", function () {
