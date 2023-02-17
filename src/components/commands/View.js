@@ -11,7 +11,7 @@ export class View {
         }
     }
     run(args) {
-        let toReturn = `Exception: view expected 0 arguments but found ${args.length - 1}.`;
+        let toReturn;
         if (args.length == 1) {
             if (this.viewHelper() != null) {
                 toReturn = loadedCSV;
@@ -19,6 +19,9 @@ export class View {
             else {
                 toReturn = `No CSV file loaded.`;
             }
+        }
+        else {
+            toReturn = `Exception: view expected 0 arguments but found ${args.length - 1}.`;
         }
         return {
             command: "view",

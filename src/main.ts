@@ -2,7 +2,10 @@ import { mockLoadMap } from "./mockedJson.js";
 import { HTMLableObject } from "./components/HTMLableObject.js";
 import { CSV } from "./components/csv/CSV.types.js";
 import { Log, CommandLog, ErrLog } from "./components/log/Log.types.js";
-import { CommandLogCreator, ErrLogCreator } from "./components/log/LogCreators.js";
+import {
+  CommandLogCreator,
+  ErrLogCreator,
+} from "./components/log/LogCreators.js";
 import { commandMap, Command } from "./components/commands/allcommands.js";
 
 // The window.onload callback is invoked when the window is first loaded by the browser
@@ -17,11 +20,11 @@ window.onload = () => {
 
 let loadedCSV: CSV;
 let commandInput: HTMLInputElement;
-let history: Array<CommandLog<CSV | string>| ErrLog> = [];
+let history: Array<CommandLog<CSV | string> | ErrLog> = [];
 let isModeVerbose: boolean = false;
 
 function toggleVerbosity(): void {
-  isModeVerbose = isModeVerbose
+  isModeVerbose = isModeVerbose;
   isModeVerbose = !isModeVerbose;
 }
 
@@ -87,23 +90,22 @@ function handleKeypress(event: KeyboardEvent) {
 }
 
 function updateCommandHistoryState() {
-  const regex: RegExp = /[^\s]+|"(.*?)"/g
+  const regex: RegExp = /[^\s]+|"(.*?)"/g;
   const regexMatches: RegExpMatchArray | null = commandInput.value.match(regex);
-  const args: Array<string> = regexMatches != null 
-    ? regexMatches.filter(n => n != null || n === " ")
-    : []
+  const args: Array<string> =
+    regexMatches != null
+      ? regexMatches.filter((n) => n != null || n === " ")
+      : [];
 
   console.log(`args: ${JSON.stringify(args)}`);
-  console.log(`view in commandMap ${"view" in commandMap}`)
+  console.log(`view in commandMap ${"view" in commandMap}`);
   if (args.length === 0) {
     history.push({ errMessage: "submitted empty string" });
   } else if (args[0] in commandMap) {
     const command: Command = commandMap[args[0]];
     history.push(command.run(args));
   } else {
-    history.push(
-      { errMessage: `command ${args[0]} not found` }
-    );
+    history.push({ errMessage: `command ${args[0]} not found` });
   }
 }
 
@@ -126,15 +128,15 @@ function renderCommandHistory() {
   } else {
     const historyDiv: Element = maybeHistoryDiv;
     const logDivs: Array<DocumentFragment> = history.map((log) => {
-      let logTemplate: HTMLTemplateElement = document.createElement("template")
+      let logTemplate: HTMLTemplateElement = document.createElement("template");
       let logHTMLObj: HTMLableObject<Log>;
       let className: string;
       if ("errMessage" in log) {
-        logHTMLObj = new HTMLableObject(log, new ErrLogCreator())
-        className = "err-log"
+        logHTMLObj = new HTMLableObject(log, new ErrLogCreator());
+        className = "err-log";
       } else {
-        logHTMLObj = new HTMLableObject(log, new CommandLogCreator())
-        className = "command-log"
+        logHTMLObj = new HTMLableObject(log, new CommandLogCreator());
+        className = "command-log";
       }
 
       logTemplate.innerHTML = `
@@ -159,4 +161,13 @@ function getHistory() {
 
 // Provide this to other modules (e.g., for testing!)
 // The configuration in this project will require /something/ to be exported.
-export { handleKeypress, prepareKeypress, getPressCount, isModeVerbose, loadedCSV, mockLoadMap, toggleVerbosity, setLoadedCSV};
+export {
+  handleKeypress,
+  prepareKeypress,
+  getPressCount,
+  isModeVerbose,
+  loadedCSV,
+  mockLoadMap,
+  toggleVerbosity,
+  setLoadedCSV,
+};
