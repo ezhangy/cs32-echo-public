@@ -9,7 +9,9 @@ import { Command } from "./Command.types";
 export class Search implements Command<string | CSV> {
   searchHelper(column: string, searchTerm: string): CSV | null {
     const stringTerm = JSON.stringify([column, searchTerm]);
-    if (loadedCSV === mockLoadMap["numberCSV.csv"]) {
+    if (loadedCSV === null) {
+      return null;
+    } else if (loadedCSV === mockLoadMap["numberCSV.csv"]) {
       return stringTerm in numberCSVSearchMap
         ? numberCSVSearchMap[stringTerm]
         : [];
@@ -49,7 +51,7 @@ export class Search implements Command<string | CSV> {
           ? new ParagraphEltCreator()
           : new TableCreator(),
       output: toReturn,
-      isResultVerbose: getIsModeVerbose()
+      isResultVerbose: getIsModeVerbose(),
     };
   }
 }

@@ -3,7 +3,7 @@ import { TableCreator } from "../csv/CSVCreators.js";
 import { ParagraphEltCreator } from "../creators/ParagraphEltCreator.js";
 export class View {
     viewHelper() {
-        if (loadedCSV == undefined) {
+        if (loadedCSV == undefined || loadedCSV == null) {
             return null;
         }
         else {
@@ -13,7 +13,7 @@ export class View {
     run(args, commandText) {
         let toReturn;
         if (args.length == 1) {
-            if (this.viewHelper() != null) {
+            if (loadedCSV != null && this.viewHelper() != null) {
                 toReturn = loadedCSV;
             }
             else {
@@ -29,7 +29,7 @@ export class View {
                 ? new ParagraphEltCreator()
                 : new TableCreator(),
             output: toReturn,
-            isResultVerbose: getIsModeVerbose()
+            isResultVerbose: getIsModeVerbose(),
         };
     }
 }

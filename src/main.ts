@@ -6,8 +6,14 @@ import { View } from "./components/commands/View.js";
 import { ParagraphEltCreator } from "./components/creators/ParagraphEltCreator.js";
 import { Result, ResultCreator } from "./components/creators/ResultCreator.js";
 import { CSV } from "./components/csv/CSV.types.js";
-import { HTMLConverter } from "./components/HTMLConverter.js";
-import { mockLoadMap } from "./mockedJson.js";
+
+import {
+  Command,
+  Load,
+  Mode,
+  Search,
+  View,
+} from "./components/commands/allcommands.js";
 
 // The window.onload callback is invoked when the window is first loaded by the browser
 window.onload = () => {
@@ -27,24 +33,22 @@ const globalClassNames = {
   COMMANDTEXTLABEL: "command-output-label",
   COMMANDTEXT: "command-text",
   BRIEFLOG: "brief-log",
-  VERBOSELOG: "verbose-log"
-}
+  VERBOSELOG: "verbose-log",
+};
 
 let loadedCSV: CSV;
 let history: Array<Result<any>> = [];
 
-
-const defaultCommandMap:  { [commandName: string]: Command<any> } = {
-    mode: new Mode(),
-    load_file: new Load(),
-    view: new View(),
-    search: new Search(),
-  };
-
+const defaultCommandMap: { [commandName: string]: Command<any> } = {
+  mode: new Mode(),
+  load_file: new Load(),
+  view: new View(),
+  search: new Search(),
+};
 
 let isModeVerbose: boolean = false;
 function getIsModeVerbose(): boolean {
-  return isModeVerbose
+  return isModeVerbose;
 }
 
 function setVerbosity(newIsModeVerbose: boolean): void {
@@ -92,6 +96,7 @@ function handleKeypress(event: KeyboardEvent) {
 
 function parseArgs(inputStr: string): Array<string> {
   const regex: RegExp = /(?:[^\s"]+|"[^"]*")+/g;
+
   const regexMatches: RegExpMatchArray | null = inputStr.match(regex);
   const args: Array<string> =
     regexMatches != null
@@ -118,11 +123,11 @@ function pushHistoryElt(
 
   const args = parseArgs(inputStr)
   if (args.length === 0) {
-    history.push({ 
+    history.push({
       command: inputStr,
       output: "submitted empty string",
       outputCreator: new ParagraphEltCreator(),
-      isResultVerbose: isModeVerbose
+      isResultVerbose: isModeVerbose,
     });
   } else if (args[0] in commandMap) {
     const command: Command<any> = commandMap[args[0]];
@@ -164,17 +169,19 @@ function updateHistoryAndRender(commandMap: { [commandName: string]: Command<any
   renderCommandHistory();
 }
 
-
 function makeResultDiv(result: Result<any>): DocumentFragment {
-  const resultTemplate: HTMLTemplateElement = document.createElement("template");
-  const resultHTML: string = 
-    new HTMLConverter<Result<any>>(result, new ResultCreator())
-      .toHTMLTemplate()
-      .innerHTML;
-  
-  const outputClassName = `${globalClassNames.COMMANDLOG} ${result.isResultVerbose 
-    ? globalClassNames.VERBOSELOG
-    : globalClassNames.BRIEFLOG}`
+  const resultTemplate: HTMLTemplateElement =
+    document.createElement("template");
+  const resultHTML: string = new HTMLConverter<Result<any>>(
+    result,
+    new ResultCreator()
+  ).toHTMLTemplate().innerHTML;
+
+  const outputClassName = `${globalClassNames.COMMANDLOG} ${
+    result.isResultVerbose
+      ? globalClassNames.VERBOSELOG
+      : globalClassNames.BRIEFLOG
+  }`;
 
   resultTemplate.innerHTML = `
     <output class="${outputClassName}"/>
@@ -184,13 +191,11 @@ function makeResultDiv(result: Result<any>): DocumentFragment {
   return resultTemplate.content;
 }
 
-
-function makeResultDivList(history: Array<Result<any>>): Array<DocumentFragment> {
-  return history.map(
-    (result: Result<any>) => makeResultDiv(result)
-  )
+function makeResultDivList(
+  history: Array<Result<any>>
+): Array<DocumentFragment> {
+  return history.map((result: Result<any>) => makeResultDiv(result));
 }
-
 
 function renderCommandHistory() {
   const maybeHistoryDivs: HTMLCollectionOf<Element> =
@@ -221,6 +226,10 @@ function resetMode() {
   isModeVerbose = false;
 }
 
+function resetLoadedCSV() {
+  loadedCSV = null;
+}
+
 // Provide this to other modules (e.g., for testing!)
 // The configuration in this project will require /something/ to be exported.
 export {
@@ -241,4 +250,5 @@ export {
   updateHistoryAndRender,
   globalClassNames,
   parseArgs
+  resetLoadedCSV,
 };
