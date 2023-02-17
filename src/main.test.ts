@@ -51,6 +51,7 @@ let mockCommandOutput: string;
 
 let mockCreator: HTMLCreator<string>;
 let mockResult: Result<string>;
+let mockCommandMap: { [commandName: string]: Command<any> }
 
 let submitButton: HTMLButtonElement;
 let commandInput: HTMLInputElement;
@@ -70,6 +71,7 @@ beforeEach(function () {
   mockCommandText = "mock arg0 arg1 arg2";
   mockArgs = ["mock", "arg0", "arg1", "arg2"];
   mockCommandOutput = "args passed into the mock command: mock, arg0, arg1, arg2"
+})
 
 
 // STATE MANAGEMENT TESTS
@@ -265,7 +267,7 @@ test("if incorrect number of args is provided, error is present", function () {
 });
 
 test("running load command creates appropriate output element", () => {
-  main.updateCommandHistoryState(
+  main.pushHistoryElt(
     main.defaultCommandMap,
     "load_file stringCSV.csv"
   );
@@ -275,14 +277,14 @@ test("running load command creates appropriate output element", () => {
 });
 
 test("running load command with invalid path creates error element", () => {
-  main.updateCommandHistoryState(main.defaultCommandMap, "load_file test.csv");
+  main.pushHistoryElt(main.defaultCommandMap, "load_file test.csv");
   main.renderCommandHistory();
 
   expect(screen.getByText("Could not find test.csv.")).toBeTruthy();
 });
 
 test("running load command with incorrect args creates error element", () => {
-  main.updateCommandHistoryState(
+  main.pushHistoryElt(
     main.defaultCommandMap,
     "load_file stringCSV.csv test"
   );
@@ -326,11 +328,11 @@ test("check output text if incorrect args are provided", function () {
 });
 
 test("running view command creates balanced/valid html table", () => {
-  main.updateCommandHistoryState(
+  main.pushHistoryElt(
     main.defaultCommandMap,
     "load_file stringCSV.csv"
   );
-  main.updateCommandHistoryState(main.defaultCommandMap, "view");
+  main.pushHistoryElt(main.defaultCommandMap, "view");
   main.renderCommandHistory();
 
   const table = document.getElementsByTagName("table");
@@ -339,18 +341,18 @@ test("running view command creates balanced/valid html table", () => {
 });
 
 test("creates error element if no CSV file is loaded", function () {
-  main.updateCommandHistoryState(main.defaultCommandMap, "view");
+  main.pushHistoryElt(main.defaultCommandMap, "view");
   main.renderCommandHistory();
 
   expect(screen.getByText("No CSV file loaded.")).toBeTruthy();
 });
 
 test("creates error element if incorrect args are provided", function () {
-  main.updateCommandHistoryState(
+  main.pushHistoryElt(
     main.defaultCommandMap,
     "load_file stringCSV.csv"
   );
-  main.updateCommandHistoryState(main.defaultCommandMap, "view test");
+  main.pushHistoryElt(main.defaultCommandMap, "view test");
   main.renderCommandHistory();
 
   expect(
@@ -403,11 +405,11 @@ test("correct output text when invalid args are provided", function () {
 });
 
 test("running search command creates correct html table", () => {
-  main.updateCommandHistoryState(
+  main.pushHistoryElt(
     main.defaultCommandMap,
     "load_file stringCSV.csv"
   );
-  main.updateCommandHistoryState(main.defaultCommandMap, "search 0 tim");
+  main.pushHistoryElt(main.defaultCommandMap, "search 0 tim");
   main.renderCommandHistory();
 
   const table = document.getElementsByTagName("table");
@@ -416,18 +418,18 @@ test("running search command creates correct html table", () => {
 });
 
 test("creates error element when no CSV loaded", () => {
-  main.updateCommandHistoryState(main.defaultCommandMap, "search 0 tim");
+  main.pushHistoryElt(main.defaultCommandMap, "search 0 tim");
   main.renderCommandHistory();
 
   expect(screen.getByText("No CSV file loaded.")).toBeTruthy();
 });
 
 test("creates error element when incorrect arguments", () => {
-  main.updateCommandHistoryState(
+  main.pushHistoryElt(
     main.defaultCommandMap,
     "load_file stringCSV.csv"
   );
-  main.updateCommandHistoryState(main.defaultCommandMap, "search tim");
+  main.pushHistoryElt(main.defaultCommandMap, "search tim");
   main.renderCommandHistory();
 
   expect(
@@ -436,33 +438,15 @@ test("creates error element when incorrect arguments", () => {
 });
 
 test("creates text element when no search term exists", () => {
-  main.updateCommandHistoryState(
+  main.pushHistoryElt(
     main.defaultCommandMap,
     "load_file stringCSV.csv"
   );
-  main.updateCommandHistoryState(main.defaultCommandMap, "search 1 tim");
+  main.pushHistoryElt(main.defaultCommandMap, "search 1 tim");
   main.renderCommandHistory();
 
   expect(screen.getByText("No search results found.")).toBeTruthy();
 });
-
-// test("repl-input exists", () => {
-//   let repl_input: HTMLCollectionOf<Element> =
-//     document.getElementsByClassName("repl-input");
-//   expect(repl_input.length).toBe(1);
-// });
-
-// test("testing empty input", function () {
-//   userEvent.click(submitButton);
-//   expect(
-//     document.getElementsByClassName("repl-command-box") == "submitted empty string"
-//   ).toBe(true);
-// });
-
-// test("when the user keypressed", function () {
-//   main.handleKeypress(new KeyboardEvent("keypress", { key: "x" }));
-//   expect(inputText.innerText === "x").toBe(true);
-// });
 
 //Other tests
 

@@ -1,12 +1,6 @@
-import { Command } from "./components/commands/Command.types.js";
-import { Load } from "./components/commands/Load.js";
-import { Mode } from "./components/commands/Mode.js";
-import { Search } from "./components/commands/Search.js";
-import { View } from "./components/commands/View.js";
 import { ParagraphEltCreator } from "./components/creators/ParagraphEltCreator.js";
 import { Result, ResultCreator } from "./components/creators/ResultCreator.js";
 import { CSV } from "./components/csv/CSV.types.js";
-
 import {
   Command,
   Load,
@@ -14,6 +8,8 @@ import {
   Search,
   View,
 } from "./components/commands/allcommands.js";
+import { HTMLConverter } from "./components/HTMLConverter.js";
+import { mockLoadMap } from "./mockedJson.js";
 
 // The window.onload callback is invoked when the window is first loaded by the browser
 window.onload = () => {
@@ -36,7 +32,7 @@ const globalClassNames = {
   VERBOSELOG: "verbose-log",
 };
 
-let loadedCSV: CSV;
+let loadedCSV: CSV | null;
 let history: Array<Result<any>> = [];
 
 const defaultCommandMap: { [commandName: string]: Command<any> } = {
@@ -238,7 +234,6 @@ export {
   getIsModeVerbose,
   getPressCount,
   loadedCSV,
-  mockLoadMap,
   setVerbosity,
   setLoadedCSV,
   clearHistory,
@@ -249,6 +244,7 @@ export {
   defaultCommandMap,
   updateHistoryAndRender,
   globalClassNames,
-  parseArgs
+  parseArgs,
   resetLoadedCSV,
+  mockLoadMap
 };
