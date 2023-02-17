@@ -15,7 +15,9 @@
 
 ### Explain the relationships between classes/interfaces.
 
-TODO: EXPLAIN
+To handle different types of commands, we first define an interface that represents the overall structure of a command. This interface includes a run method signature that takes a set of arguments as its parameters, and returns some result.
+
+Then, we define concrete classes that implement the command interfaces for specific commands. For example, we define a "view" class that implements the "view" command interface, and provides a concrete implementation of the run method for that command type.
 
 ### Discuss any specific data structures you used, why you created it, and other high level explanations.
 
