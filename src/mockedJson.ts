@@ -21,13 +21,13 @@ const mockLoadMap: { [fileName: string]: Array<Array<string | number>> } = {
 const stringCSVSearchMap: {
   [searchTerm: string]: Array<Array<string | number>>;
 } = {
-  ["[0, tim]"]: [stringCSV[0]],
-  ["[1, nelson]"]: [stringCSV[0]],
-  ["[2, instructor]"]: [stringCSV[0]],
-  ["[0, john]"]: [stringCSV[1]],
-  ["[0, jane]"]: [stringCSV[2]],
-  ["[1, doe]"]: [stringCSV[1], stringCSV[2]],
-  ["[2, student]"]: [stringCSV[1], stringCSV[2]],
+  [JSON.stringify([0, "tim"])]: [stringCSV[0]],
+  [JSON.stringify([1, "nelson"])]: [stringCSV[0]],
+  [JSON.stringify([2, "instructor"])]: [stringCSV[0]],
+  [JSON.stringify([0, "john"])]: [stringCSV[1]],
+  [JSON.stringify([0, "jane"])]: [stringCSV[2]],
+  [JSON.stringify([1, "doe"])]: [stringCSV[1], stringCSV[2]],
+  [JSON.stringify([2, "student"])]: [stringCSV[1], stringCSV[2]],
 };
 
 const numberCSVSearchMap: {
