@@ -32,26 +32,12 @@ let commandInput: HTMLInputElement;
 let history: Array<Result<any>> = [];
 
 
-let commandMap: { [commandName: string]: Command<any> } = {
-  mode: new Mode(),
-  load_file: new Load(),
-  view: new View(),
-  search: new Search(),
-};
-
-
-function setDefaultCommandMap() {
-  commandMap = {
+const defaultCommandMap:  { [commandName: string]: Command<any> } = {
     mode: new Mode(),
     load_file: new Load(),
     view: new View(),
     search: new Search(),
   };
-}
-
-function setCommandMap(newMap: { [commandName: string]: Command<any> }) {
-  commandMap = newMap
-}
 
 
 let isModeVerbose: boolean = false;
@@ -101,7 +87,7 @@ function prepareMouseClick() {
     // Notice that we're passing *THE FUNCTION* as a value, not calling it.
     // The browser will invoke the function when a key is pressed with the input in focus.
     //  (This should remind you of the strategy pattern things we've done in Java.)
-    maybeInput.addEventListener("click", updateHistoryAndRender);
+    maybeInput.addEventListener("click", () => updateHistoryAndRender(defaultCommandMap));
     console.log("Found element");
   }
 }
@@ -125,7 +111,7 @@ function handleKeypress(event: KeyboardEvent) {
   );
 }
 
-function updateCommandHistoryState(inputStr: string) {
+function updateCommandHistoryState(commandMap: { [commandName: string]: Command<any> }, inputStr: string) {
   const regex: RegExp = /[^\s]+|"(.*?)"/g;
   const regexMatches: RegExpMatchArray | null = inputStr.match(regex);
   const args: Array<string> =
@@ -133,8 +119,6 @@ function updateCommandHistoryState(inputStr: string) {
       ? regexMatches.filter((n) => n != null || n === " ")
       : [];
 
-  console.log(`args: ${JSON.stringify(args)}`);
-  console.log(`view in commandMap ${"view" in commandMap}`);
   if (args.length === 0) {
     history.push({ 
       command: inputStr,
@@ -155,8 +139,8 @@ function updateCommandHistoryState(inputStr: string) {
   }
 }
 
-function updateHistoryAndRender() {
-  updateCommandHistoryState(commandInput.value);
+function updateHistoryAndRender(commandMap: { [commandName: string]: Command<any> }) {
+  updateCommandHistoryState(commandMap, commandInput.value);
   commandInput.value = "";
   console.log(`history: ${JSON.stringify(history)}`);
   renderCommandHistory();
@@ -233,9 +217,9 @@ export {
   setLoadedCSV,
   clearHistory,
   getHistory,
-  setDefaultCommandMap,
-  setCommandMap,
   globalClassNames,
   updateCommandHistoryState,
-  renderCommandHistory
+  renderCommandHistory,
+  defaultCommandMap,
+  updateHistoryAndRender,
 };

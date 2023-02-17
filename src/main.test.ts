@@ -56,7 +56,6 @@ let commandInput: HTMLInputElement;
 beforeEach(function () {
   main.clearHistory();
   main.resetMode();
-  main.setDefaultCommandMap();
   document.body.innerHTML = startHTML;
 
   submitButton = screen.getByText("Submit");
@@ -110,10 +109,10 @@ test("Command object creates the appropriate Result object", () => {
 });
 
 test("running mock command creates the approriate HTML in the DOM", () => {
-  main.setCommandMap({
+  const mockCommandMap = ({
     mock: new MockCommand()
   })
-  main.updateCommandHistoryState(mockCommandText);
+  main.updateCommandHistoryState(mockCommandMap, mockCommandText);
   main.renderCommandHistory();
 
   expect(screen.getByText(mockCommandOutput))
