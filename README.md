@@ -15,11 +15,17 @@
 
 ### Explain the relationships between classes/interfaces.
 
-TODO: EXPLAIN
+To handle different types of commands, we first define an interface that represents the overall structure of a command. This interface includes a run method signature that takes a set of arguments as its parameters, and returns some result.
+
+Then, we define concrete classes that implement the command interfaces for specific commands. For example, we define a "view" class that implements the "view" command interface, and provides a concrete implementation of the run method for that command type.
 
 ### Discuss any specific data structures you used, why you created it, and other high level explanations.
 
-TODO: EXPLAIN
+We represent mock “CSV data” by a 2D array of numbers or strings. Each row of the 2D array represents a single row of the “CSV data,” and each element in the row represents a cell value in the corresponding column.
+
+To mock loading functionality, we used a dictionary that maps “file paths” to the corresponding mock CSV data. This allows us to quickly retrieve CSV data when needed, as if it was being loaded from a file path.
+
+To mock searching functionality, we used a dictionary that maps tuples (containing search term and search column) to search results. This allows us to quickly retrieve unique search results for all search terms and columns, without having to implement actual search functionality. When the user performs a search, the search term and column are combined into a tuple, which is then converted to a string and used as the key in the dictionary to retrieve mock search results.
 
 ## **Errors/Bugs**
 
