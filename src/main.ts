@@ -170,4 +170,5 @@ export {
   mockLoadMap,
   toggleVerbosity,
   setLoadedCSV,
+  clearHistory,
 };
