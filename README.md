@@ -19,7 +19,11 @@ TODO: EXPLAIN
 
 ### Discuss any specific data structures you used, why you created it, and other high level explanations.
 
-TODO: EXPLAIN
+We represent mock “CSV data” by a 2D array of numbers or strings. Each row of the 2D array represents a single row of the “CSV data,” and each element in the row represents a cell value in the corresponding column.
+
+To mock loading functionality, we used a dictionary that maps “file paths” to the corresponding mock CSV data. This allows us to quickly retrieve CSV data when needed, as if it was being loaded from a file path.
+
+To mock searching functionality, we used a dictionary that maps tuples (containing search term and search column) to search results. This allows us to quickly retrieve unique search results for all search terms and columns, without having to implement actual search functionality. When the user performs a search, the search term and column are combined into a tuple, which is then converted to a string and used as the key in the dictionary to retrieve mock search results.
 
 ## **Errors/Bugs**
 
