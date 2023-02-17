@@ -37,18 +37,19 @@ export class Search implements Command<string | CSV> {
         toReturn = searchResult;
       }
     } else {
-      toReturn = `Exception: view expected 0 arguments but found ${
+      toReturn = `Exception: search expected 2 arguments but found ${
         args.length - 1
       }.`;
     }
 
     return {
       command: commandText,
-      outputCreator: typeof toReturn === "string" 
-        ? new ParagraphEltCreator()
-        : new TableCreator(),
+      outputCreator:
+        typeof toReturn === "string"
+          ? new ParagraphEltCreator()
+          : new TableCreator(),
       output: toReturn,
-      isResultVerbose: isModeVerbose
+      isResultVerbose: isModeVerbose,
     };
   }
 }

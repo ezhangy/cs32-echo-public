@@ -11,6 +11,8 @@ import { Result, ResultCreator } from "./ResultCreator";
 import { ParagraphEltCreator } from "./components/utilityCreators/ParagraphEltCreator";
 import { HTMLConverter } from "./components/HTMLConverter";
 import { Load } from "./components/commands/Load";
+import { Search } from "./components/commands/Search";
+import { CSV } from "./components/csv/CSV.types";
 
 // Template HTML for test running
 const startHTML = `
@@ -139,6 +141,39 @@ test("if incorrect number of args is provided, error is present", function () {
   expect(toNewCSVResult.command).toBe("load");
   expect(toNewCSVResult.output).toBe(
     "Exception: load_file expected 1 argument but found 2."
+  );
+});
+
+//testing search command
+
+test("correct output text when CSV loaded, search term does not exist", function () {
+  new Load().run(["load", "stringCSV.csv"], "load");
+  const toNewSearchResult: Result<string | CSV> = new Search().run(
+    ["search", "1", "tim"],
+    "search"
+  );
+  expect(toNewSearchResult.command).toBe("search");
+  expect(toNewSearchResult.output).toBe("No search results found.");
+});
+
+test("correct output text when no CSV loaded", function () {
+  /*TODO: set loadedCSV to null*/
+  const toNewSearchResult: Result<string | CSV> = new Search().run(
+    ["search", "1", "tim"],
+    "search"
+  );
+  expect(toNewSearchResult.command).toBe("search");
+  expect(toNewSearchResult.output).toBe("No CSV file loaded.");
+});
+
+test("correct output text  when invalid args are provided", function () {
+  const toNewSearchResult: Result<string | CSV> = new Search().run(
+    ["search", "tim"],
+    "search"
+  );
+  expect(toNewSearchResult.command).toBe("search");
+  expect(toNewSearchResult.output).toBe(
+    "Exception: search expected 2 arguments but found 1."
   );
 });
 
