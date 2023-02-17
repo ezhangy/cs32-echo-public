@@ -44,9 +44,6 @@ test("display mode switches upon mode command", () => {
   expect(main.isModeVerbose).toBe(!oldIsModeVerbose);
 });
 
-// Notice: we're testing the keypress handler's effect on state and /nothing else/
-//  We're not actually pressing keys!
-//  We're not looking at what the console produces!
 test("handleKeypress counting", () => {
   main.handleKeypress(new KeyboardEvent("keypress", { key: "x" }));
   expect(main.getPressCount()).toBe(1);
