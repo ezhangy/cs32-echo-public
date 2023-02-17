@@ -10,9 +10,11 @@ import { Mode } from "./components/commands/Mode";
 import { Result, ResultCreator } from "./ResultCreator";
 import { ParagraphEltCreator } from "./components/utilityCreators/ParagraphEltCreator";
 import { HTMLConverter } from "./components/HTMLConverter";
+import { HTMLCreator } from "./components/HTMLCreator.types";
+
 
 // Template HTML for test running
-const startHTML = `
+const startHTML: string = `
 <div class="repl-history" id="outputDiv">
    <ul class="repl-output" title="Command Output"></ul>
 </div>
@@ -22,14 +24,49 @@ const startHTML = `
    <button type="button" class="submit-button">Submit</button>
 </div>
 `;
-var submitButton: HTMLElement;
-var inputText: HTMLElement;
+
+class MockCreator implements HTMLCreator<string> {
+  makeInnerHTML(javascriptObj: string): string {
+    return `<div>${javascriptObj}</div>`
+  }
+}
+
+class MockCommand implements Command<string> {
+  run(args: string[], commandText: string): Result<string> {
+    return {
+      command: commandText, 
+      outputCreator: new MockCreator(),
+      output: `args passed into the mock command: ${args.join(", ")}`,
+      isResultVerbose: main.getIsModeVerbose()
+    }
+  }
+}
+
+
+let mockArgs: Array<string>;
+let mockCommandText: string;
+let mockCommandOutput: string;
+let mockCreator: HTMLCreator<string>
+let mockResult: Result<string>
+
+let submitButton: HTMLButtonElement;
+let commandInput: HTMLInputElement;
+
+
 beforeEach(function () {
   main.clearHistory();
+  main.resetMode();
+  main.setDefaultCommandMap();
   document.body.innerHTML = startHTML;
 
   submitButton = screen.getByText("Submit");
-  inputText = screen.getByPlaceholderText("Input text here.");
+  commandInput = screen.getByPlaceholderText("Input text here.");
+
+
+  mockCommandText = "mock arg0 arg1 arg2";
+  mockArgs = ["mock", "arg0", "arg1", "arg2"];
+  mockCommandOutput = "args passed into the mock command: mock, arg0, arg1, arg2"
+  mockCreator = new MockCreator();
 });
 
 //DOM tests
@@ -55,49 +92,32 @@ test("modeCommand changes mode state", () => {
   expect(main.getIsModeVerbose()).toBe(false);
 });
 
-test("modeCommand returns correct Result", () => {
-  const toVerboseResult: Result<string> = new Mode().run(["mode"], "mode");
-  expect(toVerboseResult.command).toBe("mode");
-  expect(toVerboseResult.output).toBe("mode changed to verbose");
-  expect(toVerboseResult.isResultVerbose).toBe(true);
-
-  const toBriefResult: Result<string> = new Mode().run(["mode"], "mode");
-  expect(toBriefResult.command).toBe("mode");
-  expect(toBriefResult.output).toBe("mode changed to brief");
-  expect(toBriefResult.isResultVerbose).toBe(false);
-});
-
-
-// ResultCreator tests
-test("(verbose mode) ResultCreator creates the appropriate DOM element", () => {
-  const testResult: Result<string> = {
-    command: "test command text", 
-    outputCreator: new ParagraphEltCreator(),
-    output: "test output", 
-    isResultVerbose: true
+test("Command object creates the appropriate Result object", () => {
+  const mockResult: Result<string> = {
+    command: mockCommandText,
+    outputCreator: new MockCreator(),
+    output: mockCommandOutput,
+    isResultVerbose: main.getIsModeVerbose()
   }
 
-  const resultConverter: HTMLConverter<Result<string>> = 
-    new HTMLConverter(testResult, new ResultCreator())
+  const result: Result<string> = 
+    new MockCommand().run(mockArgs, mockCommandText)
 
-  const resultChildren: HTMLCollectionOf<Element> = 
-    resultConverter
-      .toHTMLTemplate()
-      .content
-      .children
-  
-  console.log(resultConverter.toHTMLTemplate().innerHTML)
-
-  expect(resultChildren.length).toBe(2)
-  const commandTextParagraph = resultChildren[0]
-  expect(commandTextParagraph instanceof HTMLParagraphElement).toBe(true)
-  expect(commandTextParagraph.className).toBe(main.globalClassNames.COMMANDTEXT)
-
-  const commandDivParagraph = resultChildren[1]
-  expect(commandDivParagraph instanceof HTMLDivElement).toBe(true)
-  expect(commandDivParagraph.className).toBe(main.globalClassNames.COMMANDOUTPUT)
+  expect(result.command).toBe(mockResult.command)
+  expect(result.output).toBe(mockResult.output)
+  expect(result.outputCreator instanceof MockCreator).toBe(true)
+  expect(result.isResultVerbose).toBe(mockResult.isResultVerbose)
 });
 
+test("running mock command creates the approriate HTML in the DOM", () => {
+  main.setCommandMap({
+    mock: new MockCommand()
+  })
+  main.updateCommandHistoryState(mockCommandText);
+  main.renderCommandHistory();
+
+  expect(screen.getByText(mockCommandOutput))
+})
 
 test("testing empty input", function () {
   userEvent.click(submitButton);

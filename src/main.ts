@@ -1,6 +1,6 @@
 import { mockLoadMap } from "./mockedJson.js";
 import { CSV } from "./components/csv/CSV.types.js";
-import { commandMap, Command } from "./components/commands/allcommands.js";
+import { Command, Load, Mode, Search, View } from "./components/commands/allcommands.js";
 import { HTMLConverter } from "./components/HTMLConverter.js";
 import { Result, ResultCreator } from "./ResultCreator.js";
 import { ParagraphEltCreator } from "./components/utilityCreators/ParagraphEltCreator.js";
@@ -30,6 +30,29 @@ const globalClassNames = {
 let loadedCSV: CSV;
 let commandInput: HTMLInputElement;
 let history: Array<Result<any>> = [];
+
+
+let commandMap: { [commandName: string]: Command<any> } = {
+  mode: new Mode(),
+  load_file: new Load(),
+  view: new View(),
+  search: new Search(),
+};
+
+
+function setDefaultCommandMap() {
+  commandMap = {
+    mode: new Mode(),
+    load_file: new Load(),
+    view: new View(),
+    search: new Search(),
+  };
+}
+
+function setCommandMap(newMap: { [commandName: string]: Command<any> }) {
+  commandMap = newMap
+}
+
 
 let isModeVerbose: boolean = false;
 function getIsModeVerbose(): boolean {
@@ -102,9 +125,7 @@ function handleKeypress(event: KeyboardEvent) {
   );
 }
 
-function updateCommandHistoryState() {
-  const inputStr: string = commandInput.value;
-
+function updateCommandHistoryState(inputStr: string) {
   const regex: RegExp = /[^\s]+|"(.*?)"/g;
   const regexMatches: RegExpMatchArray | null = inputStr.match(regex);
   const args: Array<string> =
@@ -135,7 +156,7 @@ function updateCommandHistoryState() {
 }
 
 function updateHistoryAndRender() {
-  updateCommandHistoryState();
+  updateCommandHistoryState(commandInput.value);
   commandInput.value = "";
   console.log(`history: ${JSON.stringify(history)}`);
   renderCommandHistory();
@@ -194,19 +215,27 @@ function getHistory() {
   return history.slice();
 }
 
+function resetMode() {
+  isModeVerbose = false;
+}
+
 // Provide this to other modules (e.g., for testing!)
 // The configuration in this project will require /something/ to be exported.
 export {
   handleKeypress,
+  resetMode,
   getIsModeVerbose,
   prepareKeypress,
   getPressCount,
-  isModeVerbose,
   loadedCSV,
   mockLoadMap,
   toggleVerbosity,
   setLoadedCSV,
   clearHistory,
   getHistory,
-  globalClassNames
+  setDefaultCommandMap,
+  setCommandMap,
+  globalClassNames,
+  updateCommandHistoryState,
+  renderCommandHistory
 };

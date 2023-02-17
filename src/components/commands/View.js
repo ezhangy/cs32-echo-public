@@ -1,4 +1,4 @@
-import { loadedCSV, isModeVerbose } from "../../main.js";
+import { loadedCSV, getIsModeVerbose } from "../../main.js";
 import { TableCreator } from "../csv/CSVCreators.js";
 import { ParagraphEltCreator } from "../utilityCreators/ParagraphEltCreator.js";
 export class View {
@@ -29,7 +29,7 @@ export class View {
                 ? new ParagraphEltCreator()
                 : new TableCreator(),
             output: toReturn,
-            isResultVerbose: isModeVerbose
+            isResultVerbose: getIsModeVerbose()
         };
     }
 }

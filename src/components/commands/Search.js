@@ -1,4 +1,4 @@
-import { isModeVerbose, loadedCSV, mockLoadMap } from "../../main.js";
+import { getIsModeVerbose, loadedCSV, mockLoadMap } from "../../main.js";
 import { numberCSVSearchMap, stringCSVSearchMap } from "../../mockedJson.js";
 import { TableCreator } from "../csv/CSVCreators.js";
 import { ParagraphEltCreator } from "../utilityCreators/ParagraphEltCreator.js";
@@ -45,7 +45,7 @@ export class Search {
                 ? new ParagraphEltCreator()
                 : new TableCreator(),
             output: toReturn,
-            isResultVerbose: isModeVerbose
+            isResultVerbose: getIsModeVerbose()
         };
     }
 }

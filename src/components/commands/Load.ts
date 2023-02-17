@@ -1,4 +1,4 @@
-import { isModeVerbose, setLoadedCSV } from "../../main.js";
+import { getIsModeVerbose, setLoadedCSV } from "../../main.js";
 import { mockLoadMap } from "../../mockedJson.js";
 import { Result } from "../../ResultCreator.js";
 import { ParagraphEltCreator } from "../utilityCreators/ParagraphEltCreator.js";
@@ -32,7 +32,7 @@ export class Load implements Command<string> {
       command: commandText,
       outputCreator: new ParagraphEltCreator(),
       output: output,
-      isResultVerbose: isModeVerbose
+      isResultVerbose: getIsModeVerbose()
     };
   }
 }
