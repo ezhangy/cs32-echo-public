@@ -198,6 +198,7 @@ function getHistory() {
 // The configuration in this project will require /something/ to be exported.
 export {
   handleKeypress,
+  getIsModeVerbose,
   prepareKeypress,
   getPressCount,
   isModeVerbose,
@@ -206,5 +207,6 @@ export {
   toggleVerbosity,
   setLoadedCSV,
   clearHistory,
+  getHistory,
   globalClassNames
 };
