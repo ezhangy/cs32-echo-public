@@ -20,6 +20,8 @@ const globalClassNames = {
   COMMANDLOG: "command-log",
   ARROWSPAN: "console-arrow",
   COMMANDOUTPUT: "command-output",
+  COMMANDOUTPUTLABEL: "command-output-label",
+  COMMANDTEXTLABEL: "command-output-label",
   COMMANDTEXT: "command-text",
   BRIEFLOG: "brief-log",
   VERBOSELOG: "verbose-log"
@@ -28,7 +30,11 @@ const globalClassNames = {
 let loadedCSV: CSV;
 let commandInput: HTMLInputElement;
 let history: Array<Result<any>> = [];
+
 let isModeVerbose: boolean = false;
+function getIsModeVerbose(): boolean {
+  return isModeVerbose
+}
 
 function toggleVerbosity(): void {
   isModeVerbose = isModeVerbose;
@@ -136,17 +142,21 @@ function updateHistoryAndRender() {
 }
 
 
-function makeResultDiv(result: Result<any>, className: string): DocumentFragment {
+function makeResultDiv(result: Result<any>): DocumentFragment {
   const resultTemplate: HTMLTemplateElement = document.createElement("template");
   const resultHTML: string = 
     new HTMLConverter<Result<any>>(result, new ResultCreator())
       .toHTMLTemplate()
       .innerHTML;
+  
+  const outputClassName = `${globalClassNames.COMMANDLOG} ${result.isResultVerbose 
+    ? globalClassNames.VERBOSELOG
+    : globalClassNames.BRIEFLOG}`
 
   resultTemplate.innerHTML = `
-    <div ${className} />
-      <span>></span> ${resultHTML}
-    <div />`;
+    <output class="${outputClassName}"/>
+      <span class=${globalClassNames.ARROWSPAN}>></span> ${resultHTML}
+    <output />`;
 
   return resultTemplate.content;
 }
@@ -154,7 +164,7 @@ function makeResultDiv(result: Result<any>, className: string): DocumentFragment
 
 function makeResultDivList(history: Array<Result<any>>): Array<DocumentFragment> {
   return history.map(
-    (result: Result<any>) => makeResultDiv(result, "command-log")
+    (result: Result<any>) => makeResultDiv(result)
   )
 }
 

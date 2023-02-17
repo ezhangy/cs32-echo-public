@@ -29,6 +29,20 @@ beforeEach(function () {
 
 //DOM tests
 
+// mode tests, state management
+test("application starts in brief mode", () => {
+  expect(main.isModeVerbose).toBe(false)
+});
+
+
+test("testing empty input", function () {
+  userEvent.click(submitButton);
+  expect(
+    screen.getByTitle("Command Output").innerHTML == "submitted empty string"
+  );
+});
+
+=======
 // test("repl-input exists", () => {
 //   let repl_input: HTMLCollectionOf<Element> =
 //     document.getElementsByClassName("repl-input");
