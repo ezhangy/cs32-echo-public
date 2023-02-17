@@ -261,6 +261,17 @@ test("check output text if no CSV file is loaded", function () {
   expect(toNewViewResult.output).toBe("No CSV file loaded.");
 });
 
+test("check output text if incorrect args are provided", function () {
+  const toNewViewResult: Result<string | CSV> = new View().run(
+    ["view", "test"],
+    "view"
+  );
+  expect(toNewViewResult.command).toBe("view");
+  expect(toNewViewResult.output).toBe(
+    "Exception: view expected 0 arguments but found 1."
+  );
+});
+
 test("running view command creates balanced/valid html table", () => {
   main.updateCommandHistoryState(
     main.defaultCommandMap,
@@ -272,6 +283,26 @@ test("running view command creates balanced/valid html table", () => {
   const table = document.getElementsByTagName("table");
   expect(table.length).toBe(1);
   expect(within(table[0]).getByText("tim")).toBeTruthy();
+});
+
+test("creates error element if no CSV file is loaded", function () {
+  main.updateCommandHistoryState(main.defaultCommandMap, "view");
+  main.renderCommandHistory();
+
+  expect(screen.getByText("No CSV file loaded.")).toBeTruthy();
+});
+
+test("creates error element if incorrect args are provided", function () {
+  main.updateCommandHistoryState(
+    main.defaultCommandMap,
+    "load_file stringCSV.csv"
+  );
+  main.updateCommandHistoryState(main.defaultCommandMap, "view test");
+  main.renderCommandHistory();
+
+  expect(
+    screen.getByText("Exception: view expected 0 arguments but found 1.")
+  ).toBeTruthy();
 });
 
 //testing search command
