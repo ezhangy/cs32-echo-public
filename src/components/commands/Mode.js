@@ -1,15 +1,14 @@
 import { toggleVerbosity, isModeVerbose } from "../../main.js";
 import { ParagraphEltCreator } from "../utilityCreators/ParagraphEltCreator.js";
 export class Mode {
-    run(args) {
+    run(args, commandText) {
         toggleVerbosity();
         let output = `mode changed to ${isModeVerbose ? "verbose" : "brief"}`;
-        const log = {
-            command: "mode",
+        return {
+            command: commandText,
             outputCreator: new ParagraphEltCreator(),
             output: output,
-            inVerboseMode: isModeVerbose,
+            isResultVerbose: isModeVerbose
         };
-        return log;
     }
 }

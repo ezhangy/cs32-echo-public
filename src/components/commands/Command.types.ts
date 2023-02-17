@@ -1,5 +1,5 @@
-import { CommandLog, CommandOutputType } from "../log/Log.types";
+import { Result } from "../../ResultCreator";
 
-export interface Command {
-  run(args: Array<string>): CommandLog<CommandOutputType>
+export interface Command<T> {
+  run(args: Array<string>, commandText: string): Result<T>
 }

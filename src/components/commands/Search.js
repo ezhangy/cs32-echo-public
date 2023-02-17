@@ -22,7 +22,7 @@ export class Search {
             return null;
         }
     }
-    run(args) {
+    run(args, commandText) {
         let toReturn;
         if (args.length == 3) {
             const searchResult = this.searchHelper(args[1], args[2]);
@@ -40,12 +40,12 @@ export class Search {
             toReturn = `Exception: view expected 0 arguments but found ${args.length - 1}.`;
         }
         return {
-            command: "view",
+            command: commandText,
             outputCreator: typeof toReturn === "string"
                 ? new ParagraphEltCreator()
                 : new TableCreator(),
             output: toReturn,
-            inVerboseMode: isModeVerbose,
+            isResultVerbose: isModeVerbose
         };
     }
 }

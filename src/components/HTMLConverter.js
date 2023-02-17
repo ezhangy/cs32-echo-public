@@ -1,4 +1,4 @@
-export class HTMLableObject {
+export class HTMLConverter {
     constructor(codeObj, creator) {
         this.codeObj = codeObj;
         this.creator = creator;

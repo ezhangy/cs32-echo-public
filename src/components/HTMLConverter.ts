@@ -1,6 +1,6 @@
 import { HTMLCreator } from "./HTMLCreator.types";
 
-export class HTMLableObject<T> {
+export class HTMLConverter<T> {
   readonly codeObj: T;
   private readonly creator: HTMLCreator<T>;
 

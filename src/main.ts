@@ -1,12 +1,9 @@
 import { mockLoadMap } from "./mockedJson.js";
-import { HTMLableObject } from "./components/HTMLableObject.js";
 import { CSV } from "./components/csv/CSV.types.js";
-import { Log, CommandLog, ErrLog } from "./components/log/Log.types.js";
-import {
-  CommandLogCreator,
-  ErrLogCreator,
-} from "./components/log/LogCreators.js";
 import { commandMap, Command } from "./components/commands/allcommands.js";
+import { HTMLConverter } from "./components/HTMLConverter.js";
+import { Result, ResultCreator } from "./ResultCreator.js";
+import { ParagraphEltCreator } from "./components/utilityCreators/ParagraphEltCreator.js";
 
 // The window.onload callback is invoked when the window is first loaded by the browser
 window.onload = () => {
@@ -20,7 +17,7 @@ window.onload = () => {
 
 let loadedCSV: CSV;
 let commandInput: HTMLInputElement;
-let history: Array<CommandLog<CSV | string> | ErrLog> = [];
+let history: Array<Result<any>> = [];
 let isModeVerbose: boolean = false;
 
 function toggleVerbosity(): void {
@@ -90,8 +87,10 @@ function handleKeypress(event: KeyboardEvent) {
 }
 
 function updateCommandHistoryState() {
+  const inputStr: string = commandInput.value;
+
   const regex: RegExp = /[^\s]+|"(.*?)"/g;
-  const regexMatches: RegExpMatchArray | null = commandInput.value.match(regex);
+  const regexMatches: RegExpMatchArray | null = inputStr.match(regex);
   const args: Array<string> =
     regexMatches != null
       ? regexMatches.filter((n) => n != null || n === " ")
@@ -100,12 +99,22 @@ function updateCommandHistoryState() {
   console.log(`args: ${JSON.stringify(args)}`);
   console.log(`view in commandMap ${"view" in commandMap}`);
   if (args.length === 0) {
-    history.push({ errMessage: "submitted empty string" });
+    history.push({ 
+      command: inputStr,
+      output: "submitted empty string",
+      outputCreator: new ParagraphEltCreator(),
+      isResultVerbose: isModeVerbose
+    });
   } else if (args[0] in commandMap) {
-    const command: Command = commandMap[args[0]];
-    history.push(command.run(args));
+    const command: Command<any> = commandMap[args[0]];
+    history.push(command.run(args, inputStr));
   } else {
-    history.push({ errMessage: `command ${args[0]} not found` });
+    history.push({ 
+      command: inputStr,
+      output: `command ${args[0]} not found`,
+      outputCreator: new ParagraphEltCreator(),
+      isResultVerbose: isModeVerbose
+    });
   }
 }
 
@@ -115,6 +124,31 @@ function updateHistoryAndRender() {
   console.log(`history: ${JSON.stringify(history)}`);
   renderCommandHistory();
 }
+
+
+function makeResultDiv(result: Result<any>, className: string): DocumentFragment {
+  const resultTemplate: HTMLTemplateElement = document.createElement("template");
+  const resultHTML: string = 
+    new HTMLConverter<Result<any>>(result, new ResultCreator())
+      .toHTMLTemplate()
+      .innerHTML;
+
+  resultTemplate.innerHTML = `
+    <div ${className} />
+      <span>></span> ${resultHTML}
+    <div />
+  `;
+
+  return resultTemplate.content;
+}
+
+
+function makeResultDivList(history: Array<Result<any>>): Array<DocumentFragment> {
+  return history.map(
+    (result: Result<any>) => makeResultDiv(result, "command-log")
+  )
+}
+
 
 function renderCommandHistory() {
   const maybeHistoryDivs: HTMLCollectionOf<Element> =
@@ -126,27 +160,9 @@ function renderCommandHistory() {
   } else if (!(maybeHistoryDiv instanceof HTMLDivElement)) {
     console.log(`Found element ${maybeHistoryDiv}, but it wasn't a div`);
   } else {
+    // TODO: make historyDiv global
     const historyDiv: Element = maybeHistoryDiv;
-    const logDivs: Array<DocumentFragment> = history.map((log) => {
-      let logTemplate: HTMLTemplateElement = document.createElement("template");
-      let logHTMLObj: HTMLableObject<Log>;
-      let className: string;
-      if ("errMessage" in log) {
-        logHTMLObj = new HTMLableObject(log, new ErrLogCreator());
-        className = "err-log";
-      } else {
-        logHTMLObj = new HTMLableObject(log, new CommandLogCreator());
-        className = "command-log";
-      }
-
-      logTemplate.innerHTML = `
-        <div ${className} />
-          <span>></span> ${logHTMLObj.toHTMLTemplate().innerHTML}
-        <div />
-      `;
-      return logTemplate.content;
-    });
-    historyDiv.replaceChildren(...logDivs);
+    historyDiv.replaceChildren(...makeResultDivList(history));
   }
 }
 

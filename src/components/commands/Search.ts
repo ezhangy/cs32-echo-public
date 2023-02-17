@@ -1,12 +1,12 @@
 import { isModeVerbose, loadedCSV, mockLoadMap } from "../../main.js";
 import { numberCSVSearchMap, stringCSVSearchMap } from "../../mockedJson.js";
+import { Result } from "../../ResultCreator.js";
 import { CSV } from "../csv/CSV.types.js";
 import { TableCreator } from "../csv/CSVCreators.js";
-import { CommandLog, CommandOutputType } from "../log/Log.types";
 import { ParagraphEltCreator } from "../utilityCreators/ParagraphEltCreator.js";
 import { Command } from "./Command.types";
 
-export class Search implements Command {
+export class Search implements Command<string | CSV> {
   searchHelper(column: string, searchTerm: string): CSV | null {
     const stringTerm = JSON.stringify([column, searchTerm]);
     if (loadedCSV === mockLoadMap["numberCSV.csv"]) {
@@ -24,7 +24,7 @@ export class Search implements Command {
     }
   }
 
-  run(args: string[]): CommandLog<CommandOutputType> {
+  run(args: string[], commandText: string): Result<string | CSV> {
     let toReturn: string | CSV;
 
     if (args.length == 3) {
@@ -43,13 +43,12 @@ export class Search implements Command {
     }
 
     return {
-      command: "view",
-      outputCreator:
-        typeof toReturn === "string"
-          ? new ParagraphEltCreator()
-          : new TableCreator(),
+      command: commandText,
+      outputCreator: typeof toReturn === "string" 
+        ? new ParagraphEltCreator()
+        : new TableCreator(),
       output: toReturn,
-      inVerboseMode: isModeVerbose,
+      isResultVerbose: isModeVerbose
     };
   }
 }
