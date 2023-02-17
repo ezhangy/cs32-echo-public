@@ -261,6 +261,17 @@ test("check output text if no CSV file is loaded", function () {
   expect(toNewViewResult.output).toBe("No CSV file loaded.");
 });
 
+test("running view command creates balanced/valid html table", () => {
+  main.updateCommandHistoryState(
+    main.defaultCommandMap,
+    "load_file stringCSV.csv"
+  );
+  main.updateCommandHistoryState(main.defaultCommandMap, "view");
+  main.renderCommandHistory();
+
+  expect(screen.getByText("tim")).toBeTruthy();
+});
+
 //testing search command
 
 test("check correct output table for search result", function () {
