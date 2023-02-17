@@ -11,7 +11,9 @@ import { Result, ResultCreator } from "./ResultCreator";
 import { ParagraphEltCreator } from "./components/utilityCreators/ParagraphEltCreator";
 import { HTMLConverter } from "./components/HTMLConverter";
 import { HTMLCreator } from "./components/HTMLCreator.types";
-
+import { Load } from "./components/commands/Load";
+import { Search } from "./components/commands/Search";
+import { CSV } from "./components/csv/CSV.types";
 
 // Template HTML for test running
 const startHTML: string = `
@@ -72,9 +74,8 @@ beforeEach(function () {
 
 // mode tests, state management
 test("application starts in brief mode", () => {
-  expect(main.getIsModeVerbose()).toBe(false)
+  expect(main.getIsModeVerbose()).toBe(false);
 });
-
 
 test("toggleVerbosity changes mode state", () => {
   main.toggleVerbosity();
@@ -84,12 +85,13 @@ test("toggleVerbosity changes mode state", () => {
 });
 
 test("modeCommand changes mode state", () => {
-  new Mode().run(["mode"], "mode")
+  new Mode().run(["mode"], "mode");
   expect(main.getIsModeVerbose()).toBe(true);
 
-  new Mode().run(["mode"], "mode")
+  new Mode().run(["mode"], "mode");
   expect(main.getIsModeVerbose()).toBe(false);
 });
+
 
 test("Command object creates the appropriate Result object", () => {
   const mockResult: Result<string> = {
@@ -118,10 +120,123 @@ test("running mock command creates the approriate HTML in the DOM", () => {
   expect(screen.getByText(mockCommandOutput))
 })
 
+test("modeCommand returns correct Result", () => {
+  const toVerboseResult: Result<string> = new Mode().run(["mode"], "mode");
+  expect(toVerboseResult.command).toBe("mode");
+  expect(toVerboseResult.output).toBe("mode changed to verbose");
+  expect(toVerboseResult.isResultVerbose).toBe(true);
+
+  const toBriefResult: Result<string> = new Mode().run(["mode"], "mode");
+  expect(toBriefResult.command).toBe("mode");
+  expect(toBriefResult.output).toBe("mode changed to brief");
+  expect(toBriefResult.isResultVerbose).toBe(false);
+});
+
+// ResultCreator tests
+test("(verbose mode) ResultCreator creates the appropriate DOM element", () => {
+  const testResult: Result<string> = {
+    command: "test command text",
+    outputCreator: new ParagraphEltCreator(),
+    output: "test output",
+    isResultVerbose: true,
+  };
+
+  const resultConverter: HTMLConverter<Result<string>> = new HTMLConverter(
+    testResult,
+    new ResultCreator()
+  );
+
+  const resultChildren: HTMLCollectionOf<Element> =
+    resultConverter.toHTMLTemplate().content.children;
+
+  console.log(resultConverter.toHTMLTemplate().innerHTML);
+
+  expect(resultChildren.length).toBe(2);
+  const commandTextParagraph = resultChildren[0];
+  expect(commandTextParagraph instanceof HTMLParagraphElement).toBe(true);
+  expect(commandTextParagraph.className).toBe(
+    main.globalClassNames.COMMANDTEXT
+  );
+
+  const commandDivParagraph = resultChildren[1];
+  expect(commandDivParagraph instanceof HTMLDivElement).toBe(true);
+  expect(commandDivParagraph.className).toBe(
+    main.globalClassNames.COMMANDOUTPUT
+  );
+});
+
 test("testing empty input", function () {
   userEvent.click(submitButton);
   expect(
     screen.getByTitle("Command Output").innerHTML == "submitted empty string"
+  );
+});
+
+//testing load_file command (switching datasets)
+test("loadedCSV is updated, output is present", function () {
+  const toNewCSVResult: Result<string> = new Load().run(
+    ["load", "stringCSV.csv"],
+    "load"
+  );
+  expect(toNewCSVResult.command).toBe("load");
+  expect(toNewCSVResult.output).toBe("Successfully loaded stringCSV.csv.");
+  expect(main.loadedCSV).toStrictEqual([
+    ["tim", "nelson", "instructor"],
+    ["john", "doe", "student"],
+    ["jane", "doe", "student"],
+  ]);
+});
+
+test("if filepath is invalid, error is present", function () {
+  const toNewCSVResult: Result<string> = new Load().run(
+    ["load", "test.csv"],
+    "load"
+  );
+  expect(toNewCSVResult.command).toBe("load");
+  expect(toNewCSVResult.output).toBe("Could not find test.csv.");
+});
+
+test("if incorrect number of args is provided, error is present", function () {
+  const toNewCSVResult: Result<string> = new Load().run(
+    ["load", "stringCSV.csv", "test"],
+    "load"
+  );
+  expect(toNewCSVResult.command).toBe("load");
+  expect(toNewCSVResult.output).toBe(
+    "Exception: load_file expected 1 argument but found 2."
+  );
+});
+
+//testing search command
+
+test("correct output text when CSV loaded, search term does not exist", function () {
+  new Load().run(["load", "stringCSV.csv"], "load");
+  const toNewSearchResult: Result<string | CSV> = new Search().run(
+    ["search", "1", "tim"],
+    "search"
+  );
+  expect(toNewSearchResult.command).toBe("search");
+  expect(toNewSearchResult.output).toBe("No search results found.");
+});
+
+test("correct output text when no CSV loaded", function () {
+  /*TODO: set loadedCSV to null*/
+  const toNewSearchResult: Result<string | CSV> = new Search().run(
+    ["search", "1", "tim"],
+    "search"
+  );
+  expect(toNewSearchResult.command).toBe("search");
+  expect(toNewSearchResult.output).toBe("No CSV file loaded.");
+});
+
+test("correct output text  when invalid args are provided", function () {
+  const toNewSearchResult: Result<string | CSV> = new Search().run(
+    ["search", "tim"],
+    "search"
+  );
+  expect(toNewSearchResult.command).toBe("search");
+  expect(toNewSearchResult.output).toBe(
+    "Exception: search expected 2 arguments but found 1."
   );
 });
 
@@ -144,7 +259,6 @@ test("testing empty input", function () {
 // });
 
 //Other tests
-
 
 test("handleKeypress counting", () => {
   main.handleKeypress(new KeyboardEvent("keypress", { key: "x" }));

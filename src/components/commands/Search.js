@@ -37,7 +37,7 @@ export class Search {
             }
         }
         else {
-            toReturn = `Exception: view expected 0 arguments but found ${args.length - 1}.`;
+            toReturn = `Exception: search expected 2 arguments but found ${args.length - 1}.`;
         }
         return {
             command: commandText,
