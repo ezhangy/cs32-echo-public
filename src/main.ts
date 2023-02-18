@@ -204,7 +204,7 @@ function renderCommandHistory() {
   } else {
     // TODO: make historyDiv global
     const historyDiv: Element = maybeHistoryDiv;
-    historyDiv.replaceChildren(...makeResultDivList(history));
+    historyDiv.replaceChildren(...makeResultDivList(history).reverse());
   }
 }
 

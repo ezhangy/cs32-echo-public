@@ -18,12 +18,21 @@ const startHTML: string = `
 <div class="repl-history" id="outputDiv">
    <ul class="repl-output" title="Command Output"></ul>
 </div>
-<hr>
 <div class="repl-input">
-   <input type="text" class="repl-command-box" id="input-field" placeholder="Input text here.">
-   <button type="button" class="submit-button">Submit</button>
+    <div class="command-box-wrapper">
+      <label for="command-input">Command</label>
+      <input
+        type="text"
+        class="repl-command-box"
+        name="command-input"
+        id="command-input"
+      />
+    </div>
+  <button type="button" class="repl-button">Submit</button>
+</div>
 </div>
 `;
+
 
 class MockCreator implements HTMLCreator<string> {
   makeInnerHTML(javascriptObj: string): string {
@@ -60,7 +69,7 @@ beforeEach(function () {
   document.body.innerHTML = startHTML;
 
   submitButton = screen.getByText("Submit");
-  commandInput = screen.getByPlaceholderText("Input text here.");
+  commandInput = screen.getByLabelText("Command");
 
   mockCommandMap = {
     mock: new MockCommand()
@@ -73,18 +82,7 @@ beforeEach(function () {
 
 // STATE MANAGEMENT TESTS
 // history state
-test("running command updates history state", () => {
-  expect(main.getHistory().length).toBe(0)
-  main.pushHistoryElt(mockCommandMap, "mock 1")
-  main.pushHistoryElt(mockCommandMap, "mock 2")
-  main.pushHistoryElt(mockCommandMap, "mock 3")
-  
-  const history = main.getHistory()
 
-  expect(history[0].output).toBe("args passed into the mock command: mock, 1")
-  expect(history[1].output).toBe("args passed into the mock command: mock, 2")
-  expect(history[2].output).toBe("args passed into the mock command: mock, 3")
-})
 
 
 // DOM tests
@@ -95,7 +93,6 @@ test("(brief) running mock command creates the approriate HTML in the DOM", () =
 
   // check for output
   expect(screen.getAllByText(mockCommandOutput).length).toBe(2)
-
   // there should not be a match for "Command:"
   expect(screen.queryByText(/Command:\s?/)).toBe(null)
   // there should not be a match for "Output:"

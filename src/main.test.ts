@@ -32,6 +32,7 @@ class MockCommand implements Command<string> {
 let mockArgs: Array<string>;
 let mockCommandText: string;
 let mockCommandOutput: string;
+let mockCommandMap: { [commandName: string]: Command<any> }
 
 beforeEach(function () {
   main.clearHistory();
@@ -40,8 +41,23 @@ beforeEach(function () {
   mockCommandText = "mock arg0 arg1 arg2";
   mockArgs = ["mock", "arg0", "arg1", "arg2"];
   mockCommandOutput = "args passed into the mock command: mock, arg0, arg1, arg2"
+  mockCommandMap = {
+    mock: new MockCommand()
+  }
 })
 
+test("running command updates history state", () => {
+  expect(main.getHistory().length).toBe(0)
+  main.pushHistoryElt(mockCommandMap, "mock 1")
+  main.pushHistoryElt(mockCommandMap, "mock 2")
+  main.pushHistoryElt(mockCommandMap, "mock 3")
+  
+  const history = main.getHistory()
+
+  expect(history[0].output).toBe("args passed into the mock command: mock, 1")
+  expect(history[1].output).toBe("args passed into the mock command: mock, 2")
+  expect(history[2].output).toBe("args passed into the mock command: mock, 3")
+})
 
 // mode history
 test("application starts in brief mode", () => {
