@@ -8,7 +8,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Title</title>
+    <title>Echo</title>
     <link rel="stylesheet" href="../styles/main.css" type="text/css" />
   </head>
   <body>
@@ -20,15 +20,20 @@
       <div class="repl-history">
         
       </div>
-      <hr />
       <!-- Prepare a region of the page to hold the command input box -->
-      <div class="repl-input">
-        <input
-          type="text"
-          class="repl-command-box"
-          placeholder="Input text here."
-        />
-        <button type="button" class="repl-button">Submit</button>
+      <div class="repl-input-wrapper">
+        <div class="repl-input">
+          <div class="command-box-wrapper">
+            <label for="command-input">Command</label>
+            <input
+              type="text"
+              class="repl-command-box"
+              name="command-input"
+              id="command-input"
+            />
+          </div>
+          <button type="button" class="repl-button">Submit</button>
+        </div>
       </div>
     </div>
     <!-- Load the script! Note: the .js extension is because browsers don't use TypeScript

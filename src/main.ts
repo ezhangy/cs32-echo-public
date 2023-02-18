@@ -161,7 +161,6 @@ function updateCommandHistoryState(commandMap: { [commandName: string]: Command<
 
 function updateHistoryAndRender(commandMap: { [commandName: string]: Command<any> }) {
   updateCommandHistoryState(commandMap)
-  console.log(`history: ${JSON.stringify(history)}`);
   renderCommandHistory();
 }
 
@@ -205,7 +204,7 @@ function renderCommandHistory() {
   } else {
     // TODO: make historyDiv global
     const historyDiv: Element = maybeHistoryDiv;
-    historyDiv.replaceChildren(...makeResultDivList(history));
+    historyDiv.replaceChildren(...makeResultDivList(history).reverse());
   }
 }
 
