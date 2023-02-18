@@ -147,15 +147,28 @@ test("check output text if incorrect args are provided", function () {
 });
 
 //testing search command
-test("check correct output table for search result", function () {
+test("check correct output table for search result (string)", function () {
   new Load().run(["load", "stringCSV.csv"], "load");
   const toNewSearchResult: Result<string | CSV> = new Search().run(
     ["search", "0", "tim"],
-    "search"
+    "search 0 tim"
   );
-  expect(toNewSearchResult.command).toBe("search");
+  expect(toNewSearchResult.command).toBe("search 0 tim");
   expect(toNewSearchResult.output).toStrictEqual([
     ["tim", "nelson", "instructor"],
+  ]);
+});
+
+test("check correct output table for search result (number)", function () {
+  new Load().run(["load", "numberCSV.csv"], "load");
+  const toNewSearchResult: Result<string | CSV> = new Search().run(
+    ["search", "1", "3"],
+    "search 1 3"
+  );
+  expect(toNewSearchResult.command).toBe("search 1 3");
+  expect(toNewSearchResult.output).toStrictEqual([
+    [2, 3, 4],
+    [5, 3, 4],
   ]);
 });
 

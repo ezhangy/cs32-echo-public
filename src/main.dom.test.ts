@@ -234,11 +234,11 @@ test("running load command with incorrect args creates error element", () => {
 });
 
 //testing view command
-const stringCSV = [["tim", "nelson", "instructor"],
-["john", "doe", "student"],
-["jane", "doe", "student"]]
-
 test("running view command creates table with correct elements", () => {
+  const stringCSV = [["tim", "nelson", "instructor"],
+  ["john", "doe", "student"],
+  ["jane", "doe", "student"]]
+
   main.pushHistoryElt(
     main.defaultCommandMap,
     "load_file stringCSV.csv"
@@ -298,6 +298,7 @@ test("check correct output table for search result", function () {
   expect(toNewSearchResult.output).toStrictEqual([
     ["tim", "nelson", "instructor"],
   ]);
+  
 });
 
 test("correct output text when CSV loaded, search term does not exist", function () {
