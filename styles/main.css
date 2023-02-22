@@ -1,0 +1,126 @@
+/*
+  This is a reasonable starting point for the CSS in Sprint 1.
+  Positioning in CSS can sometimes be annoying to manage, so we've opted to 
+  give you this starter CSS. Feel free to modify it as you wish, though.
+*/
+
+body {
+  font-family: ui-monospace, Menlo, Monaco, "Cascadia Mono", "Segoe UI Mono",
+    "Roboto Mono", "Oxygen Mono", "Ubuntu Monospace", "Source Code Pro",
+    "Fira Mono", "Droid Sans Mono", "Courier New", monospace;
+  line-height: 150%;
+  margin: 0;
+  font-size: 1rem;
+  background-color: #090120;
+  color: rgb(230, 226, 254)
+}
+
+.repl {
+  height: 100vh
+}
+
+p {
+  margin-block-start: 0;
+  margin-block-end: 0;
+}
+
+.repl-history {
+  /* font family from 
+  https://qwtel.com/posts/software/the-monospaced-system-ui-css-font-stack/ */
+  height: 80vh;
+  max-height: 80vh;
+  margin: auto;
+  display: flex;
+  gap: 1rem;
+  flex-direction: column-reverse;
+  overflow: scroll;
+  padding: 2rem 1rem;
+}
+
+.repl-input-wrapper {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  height: 10vh;
+  width: 100vw;
+  justify-content: center;
+  border-top: 0.1rem solid rgb(57, 46, 125);
+}
+
+.repl-input {
+  display: flex;
+  gap: 0.4rem;
+  height: fit-content;
+  width: 100%;
+  padding: 0rem 1rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.repl-input [type="text"]{
+  font-size: 1rem;
+  background-color: #1d056a;
+  color:rgb(230, 226, 254);
+  border: none;
+  height: 2rem;
+  border-radius: 0.5rem;
+  font-family: ui-monospace, Menlo, Monaco, "Cascadia Mono", "Segoe UI Mono",
+  "Roboto Mono", "Oxygen Mono", "Ubuntu Monospace", "Source Code Pro",
+  "Fira Mono", "Droid Sans Mono", "Courier New", monospace;
+}
+
+
+.repl-command-box {
+  width: 90%;
+  display: block;
+  height: fit-content;
+}
+
+.command-box-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1ch;
+  color:rgb(159, 148, 220);
+  width: 90%;
+}
+
+.command-box-wrapper label {
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.repl-button {
+  display: block;
+  height: 2.2rem;
+  width: 6rem;
+  min-height: fit-content;
+  font-size: 1rem;
+  font-family: ui-monospace, Menlo, Monaco, "Cascadia Mono", "Segoe UI Mono",
+  "Roboto Mono", "Oxygen Mono", "Ubuntu Monospace", "Source Code Pro",
+  "Fira Mono", "Droid Sans Mono", "Courier New", monospace;
+  color:rgb(188, 182, 218);
+  background-color: #1d056a;
+  border-color: #5435bb;
+}
+
+.command-log {
+  display: flex;
+  gap: 0.5ch;
+}
+
+.command-output {
+  display: flex;
+  gap: 1ch;
+}
+
+td {
+  border: 1px solid rgb(230, 226, 254);
+  padding: 0.4em 1em;
+}
+
+table {
+  table-layout: fixed;
+  max-width: 100%;
+  min-width: 10rem;
+  border-collapse: collapse;
+}
